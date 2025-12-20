@@ -843,6 +843,147 @@
             background: #c91f3d;
         }
 
+        .user-profile-view {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #000;
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        .user-profile-view.active {
+            display: block;
+        }
+
+        .user-profile-header {
+            position: relative;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+        }
+
+        .back-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+
+        .user-profile-info {
+            text-align: center;
+        }
+
+        .user-profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            border: 4px solid #667eea;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .user-profile-name {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .user-profile-username {
+            font-size: 16px;
+            opacity: 0.7;
+            margin-bottom: 20px;
+        }
+
+        .user-profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 20px 0;
+        }
+
+        .user-profile-actions {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-button.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .action-button.secondary {
+            background: #333;
+            color: white;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .user-profile-videos {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border-radius: 0 0 15px 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .search-results:empty {
+            display: none;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
         .video-controls {
             position: absolute;
             top: 50%;
@@ -900,6 +1041,55 @@
             <button class="btn-primary" id="authSubmit">Entrar</button>
             <button class="btn-secondary" id="authToggle">¿No tienes cuenta? Regístrate</button>
         </div>
+    </div>
+
+    <!-- Vista de perfil de usuario -->
+    <div class="user-profile-view" id="userProfileView">
+        <div class="user-profile-header">
+            <div class="back-btn" id="closeUserProfile">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </div>
+            <div class="user-profile-info">
+                <img class="user-profile-avatar" id="viewProfileAvatar" src="" alt="Avatar" />
+                <div class="user-profile-name" id="viewProfileName">Usuario</div>
+                <div class="user-profile-username" id="viewProfileUsername">@usuario</div>
+                <div class="user-profile-stats">
+                    <div class="stat">
+                        <div class="stat-number" id="viewProfileFollowing">0</div>
+                        <div class="stat-label">Siguiendo</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="viewProfileFollowers">0</div>
+                        <div class="stat-label">Seguidores</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="viewProfileLikes">0</div>
+                        <div class="stat-label">Me gusta</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="user-profile-actions">
+            <button class="action-button primary" id="followUserBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                </svg>
+                Seguir
+            </button>
+            <button class="action-button secondary" id="chatUserBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Chatear
+            </button>
+        </div>
+        <div class="user-profile-videos" id="viewProfileVideos"></div>
     </div>
 
     <!-- Videollamada -->
@@ -996,9 +1186,12 @@
 
         <!-- Sección de amigos -->
         <div class="friends-section" id="friendsSection">
-            <div class="search-bar">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-                <input type="text" id="friendsSearch" placeholder="Buscar usuarios..." />
+            <div class="search-container">
+                <div class="search-bar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                    <input type="text" id="friendsSearch" placeholder="Buscar usuarios..." />
+                </div>
+                <div class="search-results" id="searchResults"></div>
             </div>
             <div id="friendsList"></div>
         </div>
@@ -1165,6 +1358,7 @@
         let currentCall = null;
         let localStream = null;
         let currentChatUser = null;
+        let currentViewingUserId = null;
 
         // Autenticación
         document.getElementById('authToggle').addEventListener('click', () => {
@@ -1858,6 +2052,177 @@
                     }
                 }
             );
+        });
+
+        // Buscar usuarios en tiempo real
+        document.getElementById('friendsSearch').addEventListener('input', async (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const searchResults = document.getElementById('searchResults');
+            
+            if (!query) {
+                searchResults.innerHTML = '';
+                return;
+            }
+
+            const usersSnapshot = await db.ref('users').once('value');
+            searchResults.innerHTML = '';
+            
+            let found = false;
+            usersSnapshot.forEach(child => {
+                if (child.key !== currentUser.uid) {
+                    const user = child.val();
+                    const username = (user.username || '').toLowerCase();
+                    const email = (user.email || '').toLowerCase();
+                    
+                    if (username.includes(query) || email.includes(query)) {
+                        found = true;
+                        const userItem = document.createElement('div');
+                        userItem.className = 'user-item';
+                        userItem.style.margin = '0';
+                        userItem.style.borderRadius = '0';
+                        userItem.innerHTML = '<img class="avatar" src="' + (user.avatar || '') + '" alt="Avatar" /><div class="user-info"><div class="user-name">' + user.username + '</div><div class="user-username">@' + user.username + '</div></div>';
+                        
+                        userItem.addEventListener('click', () => {
+                            openUserProfile(child.key);
+                            searchResults.innerHTML = '';
+                            document.getElementById('friendsSearch').value = '';
+                        });
+                        
+                        searchResults.appendChild(userItem);
+                    }
+                }
+            });
+            
+            if (!found && query) {
+                searchResults.innerHTML = '<div style="padding: 20px; text-align: center; opacity: 0.6;">No se encontraron usuarios</div>';
+            }
+        });
+
+        // Búsqueda desde la barra superior
+        document.getElementById('openSearchBtn').addEventListener('click', () => {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelector('[data-section="friends"]').classList.add('active');
+            document.getElementById('videoFeed').style.display = 'none';
+            document.getElementById('profileSection').classList.remove('active');
+            document.getElementById('friendsSection').classList.add('active');
+            document.getElementById('chatSection').classList.remove('active');
+            document.getElementById('settingsSection').classList.remove('active');
+            document.getElementById('friendsSearch').focus();
+        });
+
+        // Función para abrir perfil de usuario
+        async function openUserProfile(userId) {
+            currentViewingUserId = userId;
+            const userSnapshot = await db.ref('users/' + userId).once('value');
+            const userData = userSnapshot.val();
+
+            document.getElementById('viewProfileName').textContent = userData.username;
+            document.getElementById('viewProfileUsername').textContent = '@' + userData.username;
+            document.getElementById('viewProfileFollowing').textContent = userData.following || 0;
+            document.getElementById('viewProfileFollowers').textContent = userData.followers || 0;
+            document.getElementById('viewProfileLikes').textContent = userData.likes || 0;
+            
+            if (userData.avatar) {
+                document.getElementById('viewProfileAvatar').src = userData.avatar;
+            } else {
+                document.getElementById('viewProfileAvatar').src = '';
+            }
+
+            // Verificar si ya sigue al usuario
+            const followingSnapshot = await db.ref('following/' + currentUser.uid + '/' + userId).once('value');
+            const isFollowing = followingSnapshot.exists();
+            
+            const followBtn = document.getElementById('followUserBtn');
+            if (isFollowing) {
+                followBtn.textContent = 'Siguiendo';
+                followBtn.classList.remove('primary');
+                followBtn.classList.add('secondary');
+                followBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>Siguiendo';
+            } else {
+                followBtn.textContent = 'Seguir';
+                followBtn.classList.add('primary');
+                followBtn.classList.remove('secondary');
+                followBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>Seguir';
+            }
+
+            // Cargar videos del usuario
+            const videosSnapshot = await db.ref('videos').orderByChild('userId').equalTo(userId).once('value');
+            const viewProfileVideos = document.getElementById('viewProfileVideos');
+            viewProfileVideos.innerHTML = '';
+
+            videosSnapshot.forEach(child => {
+                const video = child.val();
+                const videoThumb = document.createElement('div');
+                videoThumb.className = 'profile-video-thumb';
+                videoThumb.innerHTML = '<video src="' + video.videoUrl + '"></video><div class="views">' + (video.views || 0) + ' views</div>';
+                viewProfileVideos.appendChild(videoThumb);
+            });
+
+            document.getElementById('userProfileView').classList.add('active');
+        }
+
+        // Cerrar perfil de usuario
+        document.getElementById('closeUserProfile').addEventListener('click', () => {
+            document.getElementById('userProfileView').classList.remove('active');
+            currentViewingUserId = null;
+        });
+
+        // Seguir/Dejar de seguir usuario
+        document.getElementById('followUserBtn').addEventListener('click', async () => {
+            if (!currentViewingUserId) return;
+            
+            const followBtn = document.getElementById('followUserBtn');
+            const followingSnapshot = await db.ref('following/' + currentUser.uid + '/' + currentViewingUserId).once('value');
+            const isFollowing = followingSnapshot.exists();
+            
+            if (isFollowing) {
+                // Dejar de seguir
+                await db.ref('followers/' + currentViewingUserId + '/' + currentUser.uid).remove();
+                await db.ref('following/' + currentUser.uid + '/' + currentViewingUserId).remove();
+                
+                followBtn.classList.add('primary');
+                followBtn.classList.remove('secondary');
+                followBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>Seguir';
+                
+                // Actualizar contador
+                const currentFollowers = parseInt(document.getElementById('viewProfileFollowers').textContent) - 1;
+                document.getElementById('viewProfileFollowers').textContent = Math.max(0, currentFollowers);
+            } else {
+                // Seguir
+                await db.ref('followers/' + currentViewingUserId + '/' + currentUser.uid).set(true);
+                await db.ref('following/' + currentUser.uid + '/' + currentViewingUserId).set(true);
+                
+                followBtn.classList.remove('primary');
+                followBtn.classList.add('secondary');
+                followBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>Siguiendo';
+                
+                // Actualizar contador
+                const currentFollowers = parseInt(document.getElementById('viewProfileFollowers').textContent) + 1;
+                document.getElementById('viewProfileFollowers').textContent = currentFollowers;
+            }
+        });
+
+        // Chatear con usuario
+        document.getElementById('chatUserBtn').addEventListener('click', () => {
+            if (!currentViewingUserId) return;
+            
+            // Cerrar vista de perfil
+            document.getElementById('userProfileView').classList.remove('active');
+            
+            // Ir a la sección de chat
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelector('[data-section="chat"]').classList.add('active');
+            document.getElementById('videoFeed').style.display = 'none';
+            document.getElementById('profileSection').classList.remove('active');
+            document.getElementById('friendsSection').classList.remove('active');
+            document.getElementById('chatSection').classList.add('active');
+            document.getElementById('settingsSection').classList.remove('active');
+            
+            // Abrir chat con el usuario
+            currentChatUser = currentViewingUserId;
+            document.getElementById('chatWindow').style.display = 'flex';
+            document.getElementById('chatList').style.display = 'none';
+            loadMessages(currentViewingUserId);
         });
 
         // Eliminar cuenta
