@@ -2330,38 +2330,43 @@
             }
         });
 
-        // Chatear con usuario
-        document.getElementById('chatUserBtn').addEventListener('click', async () => {
-            if (!currentViewingUserId) {
-                alert('Error: No se pudo identificar al usuario');
-                return;
-            }
-            
-            console.log('Abriendo chat con:', currentViewingUserId);
-            
-            // Cerrar vista de perfil
-            document.getElementById('userProfileView').classList.remove('active');
-            
-            // Ir a la sección de chat
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.querySelector('[data-section="chat"]').classList.add('active');
-            document.getElementById('videoFeed').style.display = 'none';
-            document.getElementById('profileSection').classList.remove('active');
-            document.getElementById('friendsSection').classList.remove('active');
-            document.getElementById('chatSection').classList.add('active');
-            document.getElementById('settingsSection').classList.remove('active');
-            
-            // Esperar un momento para que el DOM se actualice
-            setTimeout(() => {
-                // Abrir chat con el usuario
-                currentChatUser = currentViewingUserId;
-                document.getElementById('chatWindow').style.display = 'flex';
-                document.getElementById('chatList').style.display = 'none';
-                loadMessages(currentViewingUserId);
+        // Chatear con usuario - VERIFICAR QUE EL BOTÓN EXISTE
+        const chatUserBtn = document.getElementById('chatUserBtn');
+        if (chatUserBtn) {
+            chatUserBtn.addEventListener('click', async () => {
+                if (!currentViewingUserId) {
+                    alert('Error: No se pudo identificar al usuario');
+                    return;
+                }
                 
-                console.log('Chat abierto con:', currentViewingUserId);
-            }, 100);
-        });
+                console.log('Abriendo chat con:', currentViewingUserId);
+                
+                // Cerrar vista de perfil
+                document.getElementById('userProfileView').classList.remove('active');
+                
+                // Ir a la sección de chat
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                document.querySelector('[data-section="chat"]').classList.add('active');
+                document.getElementById('videoFeed').style.display = 'none';
+                document.getElementById('profileSection').classList.remove('active');
+                document.getElementById('friendsSection').classList.remove('active');
+                document.getElementById('chatSection').classList.add('active');
+                document.getElementById('settingsSection').classList.remove('active');
+                
+                // Esperar un momento para que el DOM se actualice
+                setTimeout(() => {
+                    // Abrir chat con el usuario
+                    currentChatUser = currentViewingUserId;
+                    document.getElementById('chatWindow').style.display = 'flex';
+                    document.getElementById('chatList').style.display = 'none';
+                    loadMessages(currentViewingUserId);
+                    
+                    console.log('Chat abierto con:', currentViewingUserId);
+                }, 100);
+            });
+        } else {
+            console.error('El botón chatUserBtn no existe en el DOM');
+        }
 
         // Eliminar cuenta
         document.getElementById('deleteAccountBtn').addEventListener('click', () => {
@@ -2407,6 +2412,11 @@
 
         // Inicializar
         document.getElementById('authUsername').style.display = 'none';
+
+        // Prevenir errores si algunos elementos no existen aún
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM completamente cargado');
+        });
     </script>
 </body>
 </html>
