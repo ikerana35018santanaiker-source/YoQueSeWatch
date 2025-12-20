@@ -1374,7 +1374,16 @@
         let currentChatUser = null;
         let currentViewingUserId = null;
 
-        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        let googleProvider = null;
+        
+        // Inicializar Google provider después de que Firebase esté listo
+        try {
+            googleProvider = new firebase.auth.GoogleAuthProvider();
+            googleProvider.addScope('profile');
+            googleProvider.addScope('email');
+        } catch (error) {
+            console.error('Error al inicializar Google provider:', error);
+        }
 
         // Autenticación
         document.getElementById('authToggle').addEventListener('click', () => {
@@ -1847,7 +1856,10 @@
         // Sistema de chat básico
         function loadChats() {
             const chatList = document.getElementById('chatList');
-            chatList.innerHTML = '<div class="loading">Selecciona un amigo para chatear</div>';
+            chatList.innerHTML = '<div class="loading">Cargando chats...</div>';
+            
+            // Cargar lista de usuarios con los que has chateado o todos los usuarios
+            loadFriends();
         }
 
         // Inicializar PeerJS
@@ -2319,8 +2331,13 @@
         });
 
         // Chatear con usuario
-        document.getElementById('chatUserBtn').addEventListener('click', () => {
-            if (!currentViewingUserId) return;
+        document.getElementById('chatUserBtn').addEventListener('click', async () => {
+            if (!currentViewingUserId) {
+                alert('Error: No se pudo identificar al usuario');
+                return;
+            }
+            
+            console.log('Abriendo chat con:', currentViewingUserId);
             
             // Cerrar vista de perfil
             document.getElementById('userProfileView').classList.remove('active');
@@ -2334,11 +2351,16 @@
             document.getElementById('chatSection').classList.add('active');
             document.getElementById('settingsSection').classList.remove('active');
             
-            // Abrir chat con el usuario
-            currentChatUser = currentViewingUserId;
-            document.getElementById('chatWindow').style.display = 'flex';
-            document.getElementById('chatList').style.display = 'none';
-            loadMessages(currentViewingUserId);
+            // Esperar un momento para que el DOM se actualice
+            setTimeout(() => {
+                // Abrir chat con el usuario
+                currentChatUser = currentViewingUserId;
+                document.getElementById('chatWindow').style.display = 'flex';
+                document.getElementById('chatList').style.display = 'none';
+                loadMessages(currentViewingUserId);
+                
+                console.log('Chat abierto con:', currentViewingUserId);
+            }, 100);
         });
 
         // Eliminar cuenta
