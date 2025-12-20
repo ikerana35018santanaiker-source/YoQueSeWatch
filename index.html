@@ -3158,6 +3158,51 @@ videosSnapshot.forEach(child => {
             loadFriends();
         }
 
+        // Función para ir a un video específico
+function goToVideo(videoId) {
+    // Cerrar perfil si está abierto
+    document.getElementById('userProfileView').classList.remove('active');
+    
+    // Ir a la sección de inicio
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.nav-item')[0].classList.add('active');
+    
+    document.getElementById('videoFeed').style.display = 'block';
+    document.getElementById('profileSection').classList.remove('active');
+    document.getElementById('friendsSection').classList.remove('active');
+    document.getElementById('chatSection').classList.remove('active');
+    document.getElementById('settingsSection').classList.remove('active');
+    
+    // Buscar el video en el feed
+    setTimeout(() => {
+        const videoContainer = document.querySelector(`[data-video-id="${videoId}"]`);
+        if (videoContainer) {
+            // Hacer scroll al video
+            videoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Reproducir el video
+            const videoPlayer = videoContainer.querySelector('.video-player');
+            if (videoPlayer) {
+                videoPlayer.play();
+            }
+        } else {
+            // Si el video no está cargado, recargar el feed
+            loadVideos().then(() => {
+                setTimeout(() => {
+                    const videoContainer = document.querySelector(`[data-video-id="${videoId}"]`);
+                    if (videoContainer) {
+                        videoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        const videoPlayer = videoContainer.querySelector('.video-player');
+                        if (videoPlayer) {
+                            videoPlayer.play();
+                        }
+                    }
+                }, 500);
+            });
+        }
+    }, 300);
+}
+
         // Inicializar PeerJS
         function initializePeer() {
             peer = new Peer(currentUser.uid);
