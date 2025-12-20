@@ -1374,8 +1374,489 @@
         let localStream = null;
         let currentChatUser = null;
         let currentViewingUserId = null;
-
         let googleProvider = null;
+
+        // Traducciones
+const translations = {
+    es: {
+        // Autenticación
+        authTitle: 'Iniciar Sesión',
+        authTitleRegister: 'Registrarse',
+        authUsername: 'Nombre de usuario',
+        authEmail: 'Email',
+        authPassword: 'Contraseña',
+        authSubmit: 'Entrar',
+        authSubmitRegister: 'Crear Cuenta',
+        authToggle: '¿No tienes cuenta? Regístrate',
+        authToggleLogin: '¿Ya tienes cuenta? Inicia sesión',
+        authGoogle: 'Continuar con Google',
+        
+        // Navegación
+        navHome: 'Inicio',
+        navFriends: 'Amigos',
+        navChat: 'Chat',
+        navProfile: 'Perfil',
+        navSettings: 'Ajustes',
+        
+        // Perfil
+        profileFollowing: 'Siguiendo',
+        profileFollowers: 'Seguidores',
+        profileLikes: 'Me gusta',
+        profileEdit: 'Editar Perfil',
+        
+        // Subir video
+        uploadTitle: 'Subir Video',
+        uploadText: 'Haz clic para seleccionar un video',
+        uploadWarning: '⚠️ Máximo 50MB - Recomendado: videos cortos de 10-30 segundos',
+        uploadDescription: 'Descripción del video...',
+        uploadButton: 'Publicar Video',
+        uploadUploading: 'Subiendo... Esto puede tardar',
+        uploadSuccess: '¡Video subido exitosamente!',
+        uploadError: 'Error al subir el video',
+        uploadSelectVideo: 'Por favor selecciona un video',
+        uploadTooBig: 'El video es demasiado grande. Por favor, sube videos de máximo 50MB. Recomendación: videos de 10-30 segundos.',
+        
+        // Editar perfil
+        editProfileTitle: 'Editar Perfil',
+        editProfileAvatar: 'Cambiar foto de perfil',
+        editProfileName: 'Nombre',
+        editProfileSave: 'Guardar Cambios',
+        editProfileUpdated: 'Perfil actualizado',
+        editProfileImageSelected: 'Imagen seleccionada',
+        
+        // Amigos
+        friendsSearch: 'Buscar usuarios...',
+        friendsFollow: 'Seguir',
+        friendsFollowing: 'Siguiendo',
+        friendsNoResults: 'No se encontraron usuarios',
+        
+        // Chat
+        chatMessage: 'Escribe un mensaje...',
+        chatLoading: 'Cargando chats...',
+        chatClick: 'Click para chatear',
+        
+        // Videollamada
+        callConnecting: 'Conectando...',
+        callConnected: 'Conectado',
+        callUnavailable: 'El usuario no está disponible para videollamadas',
+        callError: 'No se pudo acceder a la cámara y micrófono',
+        
+        // Ajustes
+        settingsTitle: 'Ajustes',
+        settingsAccount: 'Información de cuenta',
+        settingsAccountDesc: 'Ver detalles de tu cuenta',
+        settingsLogout: 'Cerrar sesión',
+        settingsLogoutDesc: 'Salir de tu cuenta',
+        settingsDelete: 'Eliminar cuenta',
+        settingsDeleteDesc: 'Borrar permanentemente tu cuenta',
+        
+        // Modales de confirmación
+        confirmLogoutTitle: '¿Cerrar sesión?',
+        confirmLogoutMessage: '¿Estás seguro de que quieres salir de tu cuenta?',
+        confirmDeleteTitle: '⚠️ ¿Eliminar cuenta?',
+        confirmDeleteMessage: 'Esta acción es PERMANENTE. Se eliminarán todos tus videos, mensajes y datos. No se puede deshacer.',
+        confirmCancel: 'Cancelar',
+        confirmAccept: 'Confirmar',
+        
+        // Mensajes del sistema
+        logoutSuccess: 'Sesión cerrada correctamente',
+        deleteSuccess: 'Cuenta eliminada correctamente',
+        deleteRelogin: 'Por seguridad, necesitas volver a iniciar sesión antes de eliminar tu cuenta.',
+        errorAuth: 'Error: ',
+        errorGeneric: 'Error: ',
+        
+        // Perfil de usuario
+        userFollow: 'Seguir',
+        userFollowing: 'Siguiendo',
+        userChat: 'Chatear',
+        userError: 'Error: No se pudo identificar al usuario',
+        
+        // Video
+        videoViews: 'views',
+        videoLoading: 'Cargando videos...',
+        videoSelected: 'Seleccionado: '
+    },
+    
+    en: {
+        // Authentication
+        authTitle: 'Sign In',
+        authTitleRegister: 'Sign Up',
+        authUsername: 'Username',
+        authEmail: 'Email',
+        authPassword: 'Password',
+        authSubmit: 'Enter',
+        authSubmitRegister: 'Create Account',
+        authToggle: "Don't have an account? Sign up",
+        authToggleLogin: 'Already have an account? Sign in',
+        authGoogle: 'Continue with Google',
+        
+        // Navigation
+        navHome: 'Home',
+        navFriends: 'Friends',
+        navChat: 'Chat',
+        navProfile: 'Profile',
+        navSettings: 'Settings',
+        
+        // Profile
+        profileFollowing: 'Following',
+        profileFollowers: 'Followers',
+        profileLikes: 'Likes',
+        profileEdit: 'Edit Profile',
+        
+        // Upload video
+        uploadTitle: 'Upload Video',
+        uploadText: 'Click to select a video',
+        uploadWarning: '⚠️ Maximum 50MB - Recommended: short videos of 10-30 seconds',
+        uploadDescription: 'Video description...',
+        uploadButton: 'Publish Video',
+        uploadUploading: 'Uploading... This may take a while',
+        uploadSuccess: 'Video uploaded successfully!',
+        uploadError: 'Error uploading video',
+        uploadSelectVideo: 'Please select a video',
+        uploadTooBig: 'The video is too large. Please upload videos up to 50MB. Recommendation: 10-30 second videos.',
+        
+        // Edit profile
+        editProfileTitle: 'Edit Profile',
+        editProfileAvatar: 'Change profile picture',
+        editProfileName: 'Name',
+        editProfileSave: 'Save Changes',
+        editProfileUpdated: 'Profile updated',
+        editProfileImageSelected: 'Image selected',
+        
+        // Friends
+        friendsSearch: 'Search users...',
+        friendsFollow: 'Follow',
+        friendsFollowing: 'Following',
+        friendsNoResults: 'No users found',
+        
+        // Chat
+        chatMessage: 'Write a message...',
+        chatLoading: 'Loading chats...',
+        chatClick: 'Click to chat',
+        
+        // Video call
+        callConnecting: 'Connecting...',
+        callConnected: 'Connected',
+        callUnavailable: 'User is not available for video calls',
+        callError: 'Could not access camera and microphone',
+        
+        // Settings
+        settingsTitle: 'Settings',
+        settingsAccount: 'Account information',
+        settingsAccountDesc: 'View your account details',
+        settingsLogout: 'Sign out',
+        settingsLogoutDesc: 'Log out of your account',
+        settingsDelete: 'Delete account',
+        settingsDeleteDesc: 'Permanently delete your account',
+        
+        // Confirmation modals
+        confirmLogoutTitle: 'Sign out?',
+        confirmLogoutMessage: 'Are you sure you want to log out of your account?',
+        confirmDeleteTitle: '⚠️ Delete account?',
+        confirmDeleteMessage: 'This action is PERMANENT. All your videos, messages and data will be deleted. This cannot be undone.',
+        confirmCancel: 'Cancel',
+        confirmAccept: 'Confirm',
+        
+        // System messages
+        logoutSuccess: 'Signed out successfully',
+        deleteSuccess: 'Account deleted successfully',
+        deleteRelogin: 'For security, you need to sign in again before deleting your account.',
+        errorAuth: 'Error: ',
+        errorGeneric: 'Error: ',
+        
+        // User profile
+        userFollow: 'Follow',
+        userFollowing: 'Following',
+        userChat: 'Chat',
+        userError: 'Error: Could not identify user',
+        
+        // Video
+        videoViews: 'views',
+        videoLoading: 'Loading videos...',
+        videoSelected: 'Selected: '
+    },
+    
+    fr: {
+        // Authentification
+        authTitle: 'Se connecter',
+        authTitleRegister: "S'inscrire",
+        authUsername: "Nom d'utilisateur",
+        authEmail: 'Email',
+        authPassword: 'Mot de passe',
+        authSubmit: 'Entrer',
+        authSubmitRegister: 'Créer un compte',
+        authToggle: "Pas de compte? Inscrivez-vous",
+        authToggleLogin: 'Vous avez déjà un compte? Connectez-vous',
+        authGoogle: 'Continuer avec Google',
+        
+        // Navigation
+        navHome: 'Accueil',
+        navFriends: 'Amis',
+        navChat: 'Chat',
+        navProfile: 'Profil',
+        navSettings: 'Paramètres',
+        
+        // Profil
+        profileFollowing: 'Abonnements',
+        profileFollowers: 'Abonnés',
+        profileLikes: "J'aime",
+        profileEdit: 'Modifier le profil',
+        
+        // Télécharger vidéo
+        uploadTitle: 'Télécharger une vidéo',
+        uploadText: 'Cliquez pour sélectionner une vidéo',
+        uploadWarning: '⚠️ Maximum 50 Mo - Recommandé: vidéos courtes de 10-30 secondes',
+        uploadDescription: 'Description de la vidéo...',
+        uploadButton: 'Publier la vidéo',
+        uploadUploading: 'Téléchargement... Cela peut prendre du temps',
+        uploadSuccess: 'Vidéo téléchargée avec succès!',
+        uploadError: 'Erreur lors du téléchargement',
+        uploadSelectVideo: 'Veuillez sélectionner une vidéo',
+        uploadTooBig: 'La vidéo est trop volumineuse. Veuillez télécharger des vidéos de 50 Mo maximum. Recommandation: vidéos de 10-30 secondes.',
+        
+        // Modifier profil
+        editProfileTitle: 'Modifier le profil',
+        editProfileAvatar: 'Changer la photo de profil',
+        editProfileName: 'Nom',
+        editProfileSave: 'Enregistrer les modifications',
+        editProfileUpdated: 'Profil mis à jour',
+        editProfileImageSelected: 'Image sélectionnée',
+        
+        // Amis
+        friendsSearch: 'Rechercher des utilisateurs...',
+        friendsFollow: 'Suivre',
+        friendsFollowing: 'Suivi',
+        friendsNoResults: 'Aucun utilisateur trouvé',
+        
+        // Chat
+        chatMessage: 'Écrivez un message...',
+        chatLoading: 'Chargement des chats...',
+        chatClick: 'Cliquer pour chatter',
+        
+        // Appel vidéo
+        callConnecting: 'Connexion...',
+        callConnected: 'Connecté',
+        callUnavailable: "L'utilisateur n'est pas disponible pour les appels vidéo",
+        callError: 'Impossible d\'accéder à la caméra et au microphone',
+        
+        // Paramètres
+        settingsTitle: 'Paramètres',
+        settingsAccount: 'Informations du compte',
+        settingsAccountDesc: 'Voir les détails de votre compte',
+        settingsLogout: 'Se déconnecter',
+        settingsLogoutDesc: 'Quitter votre compte',
+        settingsDelete: 'Supprimer le compte',
+        settingsDeleteDesc: 'Supprimer définitivement votre compte',
+        
+        // Modaux de confirmation
+        confirmLogoutTitle: 'Se déconnecter?',
+        confirmLogoutMessage: 'Êtes-vous sûr de vouloir quitter votre compte?',
+        confirmDeleteTitle: '⚠️ Supprimer le compte?',
+        confirmDeleteMessage: 'Cette action est PERMANENTE. Toutes vos vidéos, messages et données seront supprimés. Cela ne peut pas être annulé.',
+        confirmCancel: 'Annuler',
+        confirmAccept: 'Confirmer',
+        
+        // Messages système
+        logoutSuccess: 'Déconnexion réussie',
+        deleteSuccess: 'Compte supprimé avec succès',
+        deleteRelogin: 'Pour des raisons de sécurité, vous devez vous reconnecter avant de supprimer votre compte.',
+        errorAuth: 'Erreur: ',
+        errorGeneric: 'Erreur: ',
+        
+        // Profil utilisateur
+        userFollow: 'Suivre',
+        userFollowing: 'Suivi',
+        userChat: 'Chatter',
+        userError: "Erreur: Impossible d'identifier l'utilisateur",
+        
+        // Vidéo
+        videoViews: 'vues',
+        videoLoading: 'Chargement des vidéos...',
+        videoSelected: 'Sélectionné: '
+    },
+    
+    it: {
+        // Autenticazione
+        authTitle: 'Accedi',
+        authTitleRegister: 'Registrati',
+        authUsername: 'Nome utente',
+        authEmail: 'Email',
+        authPassword: 'Password',
+        authSubmit: 'Entra',
+        authSubmitRegister: 'Crea account',
+        authToggle: 'Non hai un account? Registrati',
+        authToggleLogin: 'Hai già un account? Accedi',
+        authGoogle: 'Continua con Google',
+        
+        // Navigazione
+        navHome: 'Home',
+        navFriends: 'Amici',
+        navChat: 'Chat',
+        navProfile: 'Profilo',
+        navSettings: 'Impostazioni',
+        
+        // Profilo
+        profileFollowing: 'Seguiti',
+        profileFollowers: 'Follower',
+        profileLikes: 'Mi piace',
+        profileEdit: 'Modifica profilo',
+        
+        // Carica video
+        uploadTitle: 'Carica video',
+        uploadText: 'Clicca per selezionare un video',
+        uploadWarning: '⚠️ Massimo 50MB - Consigliato: video brevi di 10-30 secondi',
+        uploadDescription: 'Descrizione del video...',
+        uploadButton: 'Pubblica video',
+        uploadUploading: 'Caricamento... Potrebbe richiedere del tempo',
+        uploadSuccess: 'Video caricato con successo!',
+        uploadError: 'Errore nel caricamento del video',
+        uploadSelectVideo: 'Seleziona un video',
+        uploadTooBig: 'Il video è troppo grande. Carica video fino a 50MB. Raccomandazione: video di 10-30 secondi.',
+        
+        // Modifica profilo
+        editProfileTitle: 'Modifica profilo',
+        editProfileAvatar: 'Cambia foto profilo',
+        editProfileName: 'Nome',
+        editProfileSave: 'Salva modifiche',
+        editProfileUpdated: 'Profilo aggiornato',
+        editProfileImageSelected: 'Immagine selezionata',
+        
+        // Amici
+        friendsSearch: 'Cerca utenti...',
+        friendsFollow: 'Segui',
+        friendsFollowing: 'Seguito',
+        friendsNoResults: 'Nessun utente trovato',
+        
+        // Chat
+        chatMessage: 'Scrivi un messaggio...',
+        chatLoading: 'Caricamento chat...',
+        chatClick: 'Clicca per chattare',
+        
+        // Videochiamata
+        callConnecting: 'Connessione...',
+        callConnected: 'Connesso',
+        callUnavailable: "L'utente non è disponibile per videochiamate",
+        callError: 'Impossibile accedere a fotocamera e microfono',
+        
+        // Impostazioni
+        settingsTitle: 'Impostazioni',
+        settingsAccount: 'Informazioni account',
+        settingsAccountDesc: 'Visualizza i dettagli del tuo account',
+        settingsLogout: 'Disconnetti',
+        settingsLogoutDesc: 'Esci dal tuo account',
+        settingsDelete: 'Elimina account',
+        settingsDeleteDesc: 'Elimina permanentemente il tuo account',
+        
+        // Modali di conferma
+        confirmLogoutTitle: 'Disconnettersi?',
+        confirmLogoutMessage: 'Sei sicuro di voler uscire dal tuo account?',
+        confirmDeleteTitle: '⚠️ Eliminare account?',
+        confirmDeleteMessage: 'Questa azione è PERMANENTE. Tutti i tuoi video, messaggi e dati verranno eliminati. Non può essere annullata.',
+        confirmCancel: 'Annulla',
+        confirmAccept: 'Conferma',
+        
+        // Messaggi di sistema
+        logoutSuccess: 'Disconnessione riuscita',
+        deleteSuccess: 'Account eliminato con successo',
+        deleteRelogin: 'Per sicurezza, devi accedere nuovamente prima di eliminare il tuo account.',
+        errorAuth: 'Errore: ',
+        errorGeneric: 'Errore: ',
+        
+        // Profilo utente
+        userFollow: 'Segui',
+        userFollowing: 'Seguito',
+        userChat: 'Chatta',
+        userError: "Errore: Impossibile identificare l'utente",
+        
+        // Video
+        videoViews: 'visualizzazioni',
+        videoLoading: 'Caricamento video...',
+        videoSelected: 'Selezionato: '
+    }
+};
+
+// Detectar idioma del navegador
+let currentLanguage = 'es'; // idioma por defecto
+
+function detectLanguage() {
+    const browserLang = navigator.language || navigator.userLanguage;
+    const lang = browserLang.split('-')[0]; // obtener solo 'es' de 'es-ES'
+    
+    // Verificar si el idioma está disponible
+    if (translations[lang]) {
+        currentLanguage = lang;
+    } else {
+        currentLanguage = 'en'; // inglés como fallback
+    }
+    
+    console.log('Idioma detectado:', currentLanguage);
+}
+
+// Función para obtener traducción
+function t(key) {
+    return translations[currentLanguage][key] || translations['en'][key] || key;
+}
+
+// Función para actualizar todos los textos de la interfaz
+function updateLanguage() {
+    // Autenticación
+    document.getElementById('authTitle').textContent = isLoginMode ? t('authTitle') : t('authTitleRegister');
+    document.getElementById('authUsername').placeholder = t('authUsername');
+    document.getElementById('authEmail').placeholder = t('authEmail');
+    document.getElementById('authPassword').placeholder = t('authPassword');
+    document.getElementById('authSubmit').textContent = isLoginMode ? t('authSubmit') : t('authSubmitRegister');
+    document.getElementById('authToggle').textContent = isLoginMode ? t('authToggle') : t('authToggleLogin');
+    document.getElementById('googleLogin').childNodes[2].textContent = ' ' + t('authGoogle');
+    
+    // Navegación inferior
+    document.querySelectorAll('.nav-item')[0].querySelector('span').textContent = t('navHome');
+    document.querySelectorAll('.nav-item')[1].querySelector('span').textContent = t('navFriends');
+    document.querySelectorAll('.nav-item')[2].querySelector('span').textContent = t('navChat');
+    document.querySelectorAll('.nav-item')[3].querySelector('span').textContent = t('navProfile');
+    document.querySelectorAll('.nav-item')[4].querySelector('span').textContent = t('navSettings');
+    
+    // Modales
+    document.querySelector('#uploadModal .modal-header h2').textContent = t('uploadTitle');
+    document.querySelector('#editProfileModal .modal-header h2').textContent = t('editProfileTitle');
+    
+    // Inputs de modales
+    document.getElementById('videoDescription').placeholder = t('uploadDescription');
+    document.getElementById('uploadVideoBtn').textContent = t('uploadButton');
+    document.getElementById('editName').placeholder = t('editProfileName');
+    document.getElementById('saveProfileBtn').textContent = t('editProfileSave');
+    
+    // Búsqueda de amigos
+    document.getElementById('friendsSearch').placeholder = t('friendsSearch');
+    
+    // Chat
+    document.getElementById('messageInput').placeholder = t('chatMessage');
+    
+    // Ajustes
+    document.querySelector('.settings-header h2').textContent = t('settingsTitle');
+    document.querySelectorAll('.settings-item')[0].querySelector('.settings-title').textContent = t('settingsAccount');
+    document.querySelectorAll('.settings-item')[0].querySelector('.settings-description').textContent = t('settingsAccountDesc');
+    document.querySelectorAll('.settings-item')[1].querySelector('.settings-title').textContent = t('settingsLogout');
+    document.querySelectorAll('.settings-item')[1].querySelector('.settings-description').textContent = t('settingsLogoutDesc');
+    document.querySelectorAll('.settings-item')[2].querySelector('.settings-title').textContent = t('settingsDelete');
+    document.querySelectorAll('.settings-item')[2].querySelector('.settings-description').textContent = t('settingsDeleteDesc');
+    
+    // Perfil
+    const statLabels = document.querySelectorAll('.stat-label');
+    if (statLabels.length >= 3) {
+        statLabels[0].textContent = t('profileFollowing');
+        statLabels[1].textContent = t('profileFollowers');
+        statLabels[2].textContent = t('profileLikes');
+    }
+    
+    document.getElementById('editProfileBtn').textContent = t('profileEdit');
+    
+    // Botones de confirmación
+    document.getElementById('confirmCancel').textContent = t('confirmCancel');
+    document.getElementById('confirmAccept').textContent = t('confirmAccept');
+}
+
+// Inicializar idioma al cargar
+detectLanguage();
         
         // Inicializar Google provider después de que Firebase esté listo
         try {
@@ -1401,6 +1882,7 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
         // Autenticación
         document.getElementById('authToggle').addEventListener('click', () => {
             isLoginMode = !isLoginMode;
+            updateLanguage();
             document.getElementById('authTitle').textContent = isLoginMode ? 'Iniciar Sesión' : 'Registrarse';
             document.getElementById('authSubmit').textContent = isLoginMode ? 'Entrar' : 'Crear Cuenta';
             document.getElementById('authToggle').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión';
@@ -1436,11 +1918,9 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
     if (user) {
         currentUser = user;
         
-        // NUEVO: Verificar si el usuario existe en la base de datos
         const userSnapshot = await db.ref(`users/${user.uid}`).once('value');
         
         if (!userSnapshot.exists()) {
-            // Si es login con Google y no existe, crear perfil automáticamente
             await db.ref(`users/${user.uid}`).set({
                 username: user.displayName || user.email.split('@')[0],
                 email: user.email,
@@ -1452,9 +1932,11 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
             });
         }
         
-        // Resto del código...
         document.getElementById('authScreen').style.display = 'none';
         document.getElementById('appContainer').classList.add('active');
+        
+        // ✅ ACTUALIZAR IDIOMA AQUÍ
+        updateLanguage();
         
         initializePeer();
         loadVideos();
@@ -1464,6 +1946,9 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
         currentUser = null;
         document.getElementById('authScreen').style.display = 'flex';
         document.getElementById('appContainer').classList.remove('active');
+        
+        // ✅ ACTUALIZAR IDIOMA TAMBIÉN EN LOGIN
+        updateLanguage();
     }
 });
 
