@@ -1029,6 +1029,198 @@
             font-size: 18px;
             opacity: 0.7;
         }
+
+        /* Búsqueda global */
+.global-search-bar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    z-index: 999;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.search-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.search-tab {
+    flex: 1;
+    padding: 10px;
+    background: #1a1a1a;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.search-tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.search-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #1a1a1a;
+    padding: 12px 20px;
+    border-radius: 25px;
+    margin-bottom: 15px;
+}
+
+.search-input-wrapper input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: #fff;
+    outline: none;
+}
+
+.global-search-results {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.video-result-item {
+    display: flex;
+    gap: 15px;
+    padding: 15px;
+    background: #1a1a1a;
+    border-radius: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.video-result-item:hover {
+    background: #252525;
+    transform: translateX(5px);
+}
+
+.video-result-thumbnail {
+    width: 80px;
+    height: 120px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: #333;
+}
+
+.video-result-info {
+    flex: 1;
+}
+
+.video-result-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.video-result-username {
+    font-size: 14px;
+    opacity: 0.6;
+    margin-bottom: 5px;
+}
+
+.video-result-stats {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+/* Notificaciones */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #fe2c55;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.notifications-panel {
+    position: fixed;
+    top: 60px;
+    right: 0;
+    width: 350px;
+    max-width: 90%;
+    height: calc(100vh - 60px);
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.notifications-header h3 {
+    font-size: 20px;
+}
+
+.notification-item {
+    display: flex;
+    gap: 12px;
+    padding: 15px;
+    background: #1a1a1a;
+    border-radius: 15px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.notification-item:hover {
+    background: #252525;
+}
+
+.notification-item.unread {
+    border-left: 3px solid #667eea;
+}
+
+.notification-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-text {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.notification-time {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+/* Ajustar videos al contenido */
+.video-player {
+    width: 100%;
+    height: 100%;
+    object-fit: contain !important; /* Cambiado de cover a contain */
+    background: #000;
+}
     </style>
 </head>
 <body>
@@ -1162,12 +1354,45 @@
     <!-- App principal -->
     <div class="app-container" id="appContainer">
         <!-- Barra de navegación superior -->
-        <div class="nav-bar">
-            <h1>YoQueSéWatch</h1>
-            <div class="nav-icons">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
-            </div>
+        // En el HTML, reemplaza el nav-bar con esto:
+<div class="nav-bar">
+    <h1>YoQueSéWatch</h1>
+    <div class="nav-icons">
+        <svg id="openSearchBtn" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        <div style="position: relative;">
+            <svg id="notificationsBtn" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <span id="notificationBadge" class="notification-badge" style="display: none;">0</span>
         </div>
+    </div>
+</div>
+
+<!-- Barra de búsqueda global -->
+<div class="global-search-bar" id="globalSearchBar" style="display: none;">
+    <div class="search-container">
+        <div class="search-tabs">
+            <button class="search-tab active" data-tab="users">Usuarios</button>
+            <button class="search-tab" data-tab="videos">Videos</button>
+        </div>
+        <div class="search-input-wrapper">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+            <input type="text" id="globalSearch" placeholder="Buscar..." />
+            <svg id="closeGlobalSearch" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor: pointer;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </div>
+        <div class="global-search-results" id="globalSearchResults"></div>
+    </div>
+</div>
+
+<!-- Panel de notificaciones -->
+<div class="notifications-panel" id="notificationsPanel" style="display: none;">
+    <div class="notifications-header">
+        <h3>Notificaciones</h3>
+        <svg id="closeNotifications" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="cursor: pointer;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </div>
+    <div class="notifications-list" id="notificationsList"></div>
+</div>
 
         <!-- Feed de videos -->
         <div class="video-feed" id="videoFeed">
@@ -1375,6 +1600,266 @@
         let currentChatUser = null;
         let currentViewingUserId = null;
         let googleProvider = null;
+        // Sistema de búsqueda mejorado
+let currentSearchTab = 'users';
+
+// Abrir búsqueda
+document.getElementById('openSearchBtn').addEventListener('click', () => {
+    document.getElementById('globalSearchBar').style.display = 'block';
+    document.getElementById('globalSearch').focus();
+});
+
+// Cerrar búsqueda
+document.getElementById('closeGlobalSearch').addEventListener('click', () => {
+    document.getElementById('globalSearchBar').style.display = 'none';
+    document.getElementById('globalSearch').value = '';
+    document.getElementById('globalSearchResults').innerHTML = '';
+});
+
+// Cambiar tabs de búsqueda
+document.querySelectorAll('.search-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.search-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentSearchTab = tab.dataset.tab;
+        document.getElementById('globalSearch').value = '';
+        document.getElementById('globalSearchResults').innerHTML = '';
+        document.getElementById('globalSearch').placeholder = currentSearchTab === 'users' ? 'Buscar usuarios...' : 'Buscar videos...';
+    });
+});
+
+// Búsqueda en tiempo real
+document.getElementById('globalSearch').addEventListener('input', async (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    const searchResults = document.getElementById('globalSearchResults');
+    
+    if (!query) {
+        searchResults.innerHTML = '';
+        return;
+    }
+
+    if (currentSearchTab === 'users') {
+        // Buscar usuarios
+        const usersSnapshot = await db.ref('users').once('value');
+        searchResults.innerHTML = '';
+        
+        let found = false;
+        usersSnapshot.forEach(child => {
+            if (child.key !== currentUser.uid) {
+                const user = child.val();
+                const username = (user.username || '').toLowerCase();
+                const email = (user.email || '').toLowerCase();
+                
+                if (username.includes(query) || email.includes(query)) {
+                    found = true;
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.innerHTML = `
+                        <img class="avatar" src="${user.avatar || ''}" alt="Avatar" />
+                        <div class="user-info">
+                            <div class="user-name">${user.username}</div>
+                            <div class="user-username">@${user.username}</div>
+                        </div>
+                    `;
+                    
+                    userItem.addEventListener('click', () => {
+                        openUserProfile(child.key);
+                        document.getElementById('globalSearchBar').style.display = 'none';
+                        document.getElementById('globalSearch').value = '';
+                        searchResults.innerHTML = '';
+                    });
+                    
+                    searchResults.appendChild(userItem);
+                }
+            }
+        });
+        
+        if (!found) {
+            searchResults.innerHTML = '<div style="padding: 20px; text-align: center; opacity: 0.6;">No se encontraron usuarios</div>';
+        }
+    } else {
+        // Buscar videos
+        const videosSnapshot = await db.ref('videos').once('value');
+        searchResults.innerHTML = '';
+        
+        let found = false;
+        videosSnapshot.forEach(child => {
+            const video = child.val();
+            const videoTitle = (video.title || video.description || '').toLowerCase();
+            const videoDesc = (video.description || '').toLowerCase();
+            
+            if (videoTitle.includes(query) || videoDesc.includes(query)) {
+                found = true;
+                
+                // Obtener info del usuario
+                db.ref(`users/${video.userId}`).once('value').then(userSnap => {
+                    const user = userSnap.val();
+                    
+                    const videoItem = document.createElement('div');
+                    videoItem.className = 'video-result-item';
+                    videoItem.innerHTML = `
+                        <video class="video-result-thumbnail" src="${video.videoUrl}" muted></video>
+                        <div class="video-result-info">
+                            <div class="video-result-title">${video.title || video.description || 'Video sin título'}</div>
+                            <div class="video-result-username">@${user?.username || 'Usuario'}</div>
+                            <div class="video-result-stats">${video.likes || 0} likes • ${video.views || 0} vistas</div>
+                        </div>
+                    `;
+                    
+                    videoItem.addEventListener('click', () => {
+                        // Ir al video en el feed
+                        document.getElementById('globalSearchBar').style.display = 'none';
+                        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                        document.querySelectorAll('.nav-item')[0].classList.add('active');
+                        document.getElementById('videoFeed').style.display = 'block';
+                        document.getElementById('profileSection').classList.remove('active');
+                        document.getElementById('friendsSection').classList.remove('active');
+                        document.getElementById('chatSection').classList.remove('active');
+                        document.getElementById('settingsSection').classList.remove('active');
+                        
+                        // Scroll al video específico (esto requiere que tengas IDs en los videos)
+                        loadVideos();
+                    });
+                    
+                    searchResults.appendChild(videoItem);
+                });
+            }
+        });
+        
+        if (!found) {
+            setTimeout(() => {
+                if (searchResults.children.length === 0) {
+                    searchResults.innerHTML = '<div style="padding: 20px; text-align: center; opacity: 0.6;">No se encontraron videos</div>';
+                }
+            }, 500);
+        }
+    }
+});
+
+// Sistema de notificaciones
+async function loadNotifications() {
+    if (!currentUser) return;
+    
+    const notificationsRef = db.ref(`notifications/${currentUser.uid}`);
+    
+    notificationsRef.on('value', async (snapshot) => {
+        const notificationsList = document.getElementById('notificationsList');
+        const badge = document.getElementById('notificationBadge');
+        
+        if (!snapshot.exists()) {
+            notificationsList.innerHTML = '<div style="padding: 20px; text-align: center; opacity: 0.6;">No hay notificaciones</div>';
+            badge.style.display = 'none';
+            return;
+        }
+        
+        notificationsList.innerHTML = '';
+        let unreadCount = 0;
+        const notifications = [];
+        
+        snapshot.forEach(child => {
+            const notif = { id: child.key, ...child.val() };
+            notifications.push(notif);
+            if (!notif.read) unreadCount++;
+        });
+        
+        // Ordenar por fecha (más recientes primero)
+        notifications.sort((a, b) => b.timestamp - a.timestamp);
+        
+        // Mostrar notificaciones
+        for (const notif of notifications) {
+            const userSnapshot = await db.ref(`users/${notif.fromUserId}`).once('value');
+            const user = userSnapshot.val();
+            
+            const notifItem = document.createElement('div');
+            notifItem.className = `notification-item ${!notif.read ? 'unread' : ''}`;
+            
+            let notifText = '';
+            if (notif.type === 'follow') {
+                notifText = `<strong>${user?.username || 'Usuario'}</strong> comenzó a seguirte`;
+            } else if (notif.type === 'like') {
+                notifText = `<strong>${user?.username || 'Usuario'}</strong> le dio like a tu video`;
+            } else if (notif.type === 'comment') {
+                notifText = `<strong>${user?.username || 'Usuario'}</strong> comentó tu video`;
+            }
+            
+            notifItem.innerHTML = `
+                <img class="notification-avatar" src="${user?.avatar || ''}" alt="Avatar" />
+                <div class="notification-content">
+                    <div class="notification-text">${notifText}</div>
+                    <div class="notification-time">${getTimeAgo(notif.timestamp)}</div>
+                </div>
+            `;
+            
+            notifItem.addEventListener('click', async () => {
+                // Marcar como leída
+                await db.ref(`notifications/${currentUser.uid}/${notif.id}/read`).set(true);
+                
+                // Ir al perfil del usuario o al video
+                if (notif.type === 'follow') {
+                    openUserProfile(notif.fromUserId);
+                }
+                
+                document.getElementById('notificationsPanel').style.display = 'none';
+            });
+            
+            notificationsList.appendChild(notifItem);
+        }
+        
+        // Actualizar badge
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    });
+}
+
+// Función para calcular tiempo transcurrido
+function getTimeAgo(timestamp) {
+    const now = Date.now();
+    const diff = now - timestamp;
+    
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Ahora';
+    if (minutes < 60) return `Hace ${minutes}m`;
+    if (hours < 24) return `Hace ${hours}h`;
+    return `Hace ${days}d`;
+}
+
+// Abrir/cerrar panel de notificaciones
+document.getElementById('notificationsBtn').addEventListener('click', () => {
+    const panel = document.getElementById('notificationsPanel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('closeNotifications').addEventListener('click', () => {
+    document.getElementById('notificationsPanel').style.display = 'none';
+});
+
+// Enviar notificación cuando alguien te sigue
+async function sendFollowNotification(toUserId) {
+    await db.ref(`notifications/${toUserId}`).push({
+        type: 'follow',
+        fromUserId: currentUser.uid,
+        timestamp: Date.now(),
+        read: false
+    });
+}
+
+// Enviar notificación cuando alguien da like
+async function sendLikeNotification(toUserId, videoId) {
+    await db.ref(`notifications/${toUserId}`).push({
+        type: 'like',
+        fromUserId: currentUser.uid,
+        videoId: videoId,
+        timestamp: Date.now(),
+        read: false
+    });
+}
 
         // Traducciones
 const translations = {
@@ -2218,14 +2703,20 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
                 });
 
                 // Like
-                const likeBtn = videoContainer.querySelector('[data-action="like"]');
-                likeBtn.addEventListener('click', async () => {
-                    if (!likeBtn.classList.contains('liked')) {
-                        likeBtn.classList.add('liked');
-                        await db.ref(`videos/${video.id}/likes`).set((video.likes || 0) + 1);
-                        likeBtn.querySelector('span').textContent = (video.likes || 0) + 1;
-                    }
-                });
+                // En la función loadVideos(), reemplaza el evento de like:
+const likeBtn = videoContainer.querySelector('[data-action="like"]');
+likeBtn.addEventListener('click', async () => {
+    if (!likeBtn.classList.contains('liked')) {
+        likeBtn.classList.add('liked');
+        await db.ref(`videos/${video.id}/likes`).set((video.likes || 0) + 1);
+        likeBtn.querySelector('span').textContent = (video.likes || 0) + 1;
+        
+        // Enviar notificación al dueño del video
+        if (video.userId !== currentUser.uid) {
+            await sendLikeNotification(video.userId, video.id);
+        }
+    }
+});
             }
         }
 
@@ -2305,65 +2796,85 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
 
         // Cargar amigos
         async function loadFriends() {
-            const usersSnapshot = await db.ref('users').once('value');
-            const friendsList = document.getElementById('friendsList');
-            const chatList = document.getElementById('chatList');
-            friendsList.innerHTML = '';
-            chatList.innerHTML = '';
+    const usersSnapshot = await db.ref('users').once('value');
+    const friendsList = document.getElementById('friendsList');
+    const chatList = document.getElementById('chatList');
+    friendsList.innerHTML = '';
+    chatList.innerHTML = '';
 
-            usersSnapshot.forEach(child => {
-                if (child.key !== currentUser.uid) {
-                    const user = child.val();
+    for (const child of usersSnapshot.val() ? Object.entries(usersSnapshot.val()) : []) {
+        const [userId, user] = child;
+        
+        if (userId !== currentUser.uid) {
+            // Verificar si ya sigue al usuario
+            const followingSnapshot = await db.ref(`following/${currentUser.uid}/${userId}`).once('value');
+            const isFollowing = followingSnapshot.exists();
+            
+            // Lista de amigos
+            const userItem = document.createElement('div');
+            userItem.className = 'user-item';
+            userItem.innerHTML = `
+                <img class="avatar" src="${user.avatar || ''}" alt="Avatar" />
+                <div class="user-info">
+                    <div class="user-name">${user.username}</div>
+                    <div class="user-username">@${user.username}</div>
+                </div>
+                <button class="follow-btn ${isFollowing ? 'following' : ''}" data-user="${userId}">
+                    ${isFollowing ? 'Siguiendo' : 'Seguir'}
+                </button>
+            `;
+            friendsList.appendChild(userItem);
+
+            const followBtn = userItem.querySelector('.follow-btn');
+            followBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                
+                if (followBtn.classList.contains('following')) {
+                    // Dejar de seguir
+                    followBtn.classList.remove('following');
+                    followBtn.textContent = 'Seguir';
+                    await db.ref(`followers/${userId}/${currentUser.uid}`).remove();
+                    await db.ref(`following/${currentUser.uid}/${userId}`).remove();
+                } else {
+                    // Seguir
+                    followBtn.classList.add('following');
+                    followBtn.textContent = 'Siguiendo';
+                    await db.ref(`followers/${userId}/${currentUser.uid}`).set(true);
+                    await db.ref(`following/${currentUser.uid}/${userId}`).set(true);
                     
-                    // Lista de amigos
-                    const userItem = document.createElement('div');
-                    userItem.className = 'user-item';
-                    userItem.innerHTML = `
-                        <img class="avatar" src="${user.avatar || ''}" alt="Avatar" />
-                        <div class="user-info">
-                            <div class="user-name">${user.username}</div>
-                            <div class="user-username">@${user.username}</div>
-                        </div>
-                        <button class="follow-btn" data-user="${child.key}">Seguir</button>
-                    `;
-                    friendsList.appendChild(userItem);
-
-                    const followBtn = userItem.querySelector('.follow-btn');
-                    followBtn.addEventListener('click', async () => {
-                        if (followBtn.classList.contains('following')) {
-                            followBtn.classList.remove('following');
-                            followBtn.textContent = 'Seguir';
-                        } else {
-                            followBtn.classList.add('following');
-                            followBtn.textContent = 'Siguiendo';
-                            
-                            await db.ref(`followers/${child.key}/${currentUser.uid}`).set(true);
-                            await db.ref(`following/${currentUser.uid}/${child.key}`).set(true);
-                        }
-                    });
-
-                    // Lista de chats
-                    const chatItem = document.createElement('div');
-                    chatItem.className = 'user-item';
-                    chatItem.innerHTML = `
-                        <img class="avatar" src="${user.avatar || ''}" alt="Avatar" />
-                        <div class="user-info">
-                            <div class="user-name">${user.username}</div>
-                            <div class="user-username">Click para chatear</div>
-                        </div>
-                    `;
-                    chatList.appendChild(chatItem);
-
-                    chatItem.addEventListener('click', () => {
-                        currentChatUser = child.key;
-                        document.getElementById('chatWindow').style.display = 'flex';
-                        document.getElementById('chatList').style.display = 'none';
-                        loadMessages(child.key);
-                    });
+                    // Enviar notificación
+                    await sendFollowNotification(userId);
                 }
             });
-        }
 
+            // Hacer clic en el item para ver perfil
+            userItem.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('follow-btn')) {
+                    openUserProfile(userId);
+                }
+            });
+
+            // Lista de chats
+            const chatItem = document.createElement('div');
+            chatItem.className = 'user-item';
+            chatItem.innerHTML = `
+                <img class="avatar" src="${user.avatar || ''}" alt="Avatar" />
+                <div class="user-info">
+                    <div class="user-name">${user.username}</div>
+                    <div class="user-username">Click para chatear</div>
+                </div>
+            `;
+            chatList.appendChild(chatItem);
+
+            chatItem.addEventListener('click', () => {
+                currentChatUser = userId;
+                document.getElementById('chatWindow').style.display = 'flex';
+                document.getElementById('chatList').style.display = 'none';
+                loadMessages(userId);
+            });
+        }
+    }
+}
         // Sistema de chat básico
         function loadChats() {
             const chatList = document.getElementById('chatList');
@@ -2842,42 +3353,32 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
         });
 
         // Chatear con usuario - VERIFICAR QUE EL BOTÓN EXISTE
-        const chatUserBtn = document.getElementById('chatUserBtn');
-        if (chatUserBtn) {
-            chatUserBtn.addEventListener('click', async () => {
-                if (!currentViewingUserId) {
-                    alert('Error: No se pudo identificar al usuario');
-                    return;
-                }
-                
-                console.log('Abriendo chat con:', currentViewingUserId);
-                
-                // Cerrar vista de perfil
-                document.getElementById('userProfileView').classList.remove('active');
-                
-                // Ir a la sección de chat
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                document.querySelector('[data-section="chat"]').classList.add('active');
-                document.getElementById('videoFeed').style.display = 'none';
-                document.getElementById('profileSection').classList.remove('active');
-                document.getElementById('friendsSection').classList.remove('active');
-                document.getElementById('chatSection').classList.add('active');
-                document.getElementById('settingsSection').classList.remove('active');
-                
-                // Esperar un momento para que el DOM se actualice
-                setTimeout(() => {
-                    // Abrir chat con el usuario
-                    currentChatUser = currentViewingUserId;
-                    document.getElementById('chatWindow').style.display = 'flex';
-                    document.getElementById('chatList').style.display = 'none';
-                    loadMessages(currentViewingUserId);
-                    
-                    console.log('Chat abierto con:', currentViewingUserId);
-                }, 100);
-            });
-        } else {
-            console.error('El botón chatUserBtn no existe en el DOM');
-        }
+        // Chatear con usuario - ARREGLADO
+document.getElementById('chatUserBtn').addEventListener('click', () => {
+    if (!currentViewingUserId) {
+        alert('Error: No se pudo identificar al usuario');
+        return;
+    }
+    
+    // Cerrar vista de perfil
+    document.getElementById('userProfileView').classList.remove('active');
+    
+    // Ir a la sección de chat
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelector('[data-section="chat"]').classList.add('active');
+    
+    document.getElementById('videoFeed').style.display = 'none';
+    document.getElementById('profileSection').classList.remove('active');
+    document.getElementById('friendsSection').classList.remove('active');
+    document.getElementById('chatSection').classList.add('active');
+    document.getElementById('settingsSection').classList.remove('active');
+    
+    // Abrir chat
+    currentChatUser = currentViewingUserId;
+    document.getElementById('chatWindow').style.display = 'flex';
+    document.getElementById('chatList').style.display = 'none';
+    loadMessages(currentViewingUserId);
+});
 
         // Eliminar cuenta
         document.getElementById('deleteAccountBtn').addEventListener('click', () => {
