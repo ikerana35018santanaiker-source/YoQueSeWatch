@@ -1547,6 +1547,7 @@
                 <input type="file" id="videoInput" accept="video/*" />
             </div>
             <input type="text" id="videoDescription" placeholder="Descripción del video..." style="width: 100%; padding: 12px; background: #252525; border: none; border-radius: 10px; color: #fff; margin-bottom: 15px;" />
+            <input type="text" id="videoTitle" placeholder="Título del video..." style="width: 100%; padding: 12px; background: #252525; border: none; border-radius: 10px; color: #fff; margin-bottom: 15px;" />
             <button class="btn-primary" id="uploadVideoBtn" style="width: 100%;">Publicar Video</button>
         </div>
     </div>
@@ -2546,40 +2547,52 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
         }
 
         document.getElementById('uploadVideoBtn').addEventListener('click', async () => {
-            if (!selectedVideo) {
-                alert('Por favor selecciona un video');
-                return;
-            }
+    if (!selectedVideo) {
+        alert('Por favor selecciona un video');
+        return;
+    }
 
-            // Verificar tamaño del archivo antes de procesar
-            const fileSizeInMB = selectedVideo.size / 1024 / 1024;
-            if (fileSizeInMB > 50) {
-                alert('El video es demasiado grande. Por favor, sube videos de máximo 50MB. Recomendación: videos de 10-30 segundos.');
-                return;
-            }
+    const fileSizeInMB = selectedVideo.size / 1024 / 1024;
+    if (fileSizeInMB > 50) {
+        alert('El video es demasiado grande...');
+        return;
+    }
 
-            const description = document.getElementById('videoDescription').value;
-            
-            try {
-                document.getElementById('uploadVideoBtn').textContent = 'Subiendo... Esto puede tardar';
-                document.getElementById('uploadVideoBtn').disabled = true;
-                
-                await compressAndUploadVideo(selectedVideo, description);
-
-                document.getElementById('uploadModal').classList.remove('active');
-                document.getElementById('videoDescription').value = '';
-                document.getElementById('uploadVideoBtn').textContent = 'Publicar Video';
-                document.getElementById('uploadVideoBtn').disabled = false;
-                selectedVideo = null;
-                document.querySelector('.upload-area p').textContent = 'Haz clic para seleccionar un video';
-                loadVideos();
-                alert('¡Video subido exitosamente!');
-            } catch (error) {
-                alert('Error: ' + error.message);
-                document.getElementById('uploadVideoBtn').textContent = 'Publicar Video';
-                document.getElementById('uploadVideoBtn').disabled = false;
-            }
+    const title = document.getElementById('videoTitle').value || 'Sin título';
+    const description = document.getElementById('videoDescription').value;
+    
+    try {
+        document.getElementById('uploadVideoBtn').textContent = 'Subiendo...';
+        document.getElementById('uploadVideoBtn').disabled = true;
+        
+        const videoBase64 = await fileToBase64(selectedVideo);
+        
+        await db.ref('videos').push({
+            userId: currentUser.uid,
+            videoUrl: videoBase64,
+            title: title,
+            description: description,
+            likes: 0,
+            comments: 0,
+            shares: 0,
+            views: 0,
+            timestamp: Date.now()
         });
+
+        document.getElementById('uploadModal').classList.remove('active');
+        document.getElementById('videoTitle').value = '';
+        document.getElementById('videoDescription').value = '';
+        document.getElementById('uploadVideoBtn').textContent = 'Publicar Video';
+        document.getElementById('uploadVideoBtn').disabled = false;
+        selectedVideo = null;
+        loadVideos();
+        alert('¡Video subido exitosamente!');
+    } catch (error) {
+        alert('Error: ' + error.message);
+        document.getElementById('uploadVideoBtn').textContent = 'Publicar Video';
+        document.getElementById('uploadVideoBtn').disabled = false;
+    }
+});
 
         // Cargar videos
         async function loadVideos() {
