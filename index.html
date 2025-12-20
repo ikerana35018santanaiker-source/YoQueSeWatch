@@ -1040,6 +1040,20 @@
             <input type="password" id="authPassword" placeholder="Contraseña" />
             <button class="btn-primary" id="authSubmit">Entrar</button>
             <button class="btn-secondary" id="authToggle">¿No tienes cuenta? Regístrate</button>
+            <div style="display: flex; align-items: center; margin: 20px 0;">
+                <div style="flex: 1; height: 1px; background: #e0e0e0;"></div>
+                <span style="padding: 0 10px; color: #999;">o</span>
+                <div style="flex: 1; height: 1px; background: #e0e0e0;"></div>
+            </div>
+            <button class="btn-primary" id="googleSignInBtn" style="background: #fff; color: #333; display: flex; align-items: center; justify-content: center; gap: 10px; border: 2px solid #e0e0e0;">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Continuar con Google
+            </button>
         </div>
     </div>
 
@@ -1303,7 +1317,7 @@
             <div class="upload-area" id="uploadArea">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 <p style="margin-top: 15px;">Haz clic para seleccionar un video</p>
-                <p style="font-size: 12px; opacity: 0.6; margin-top: 5px;">Videos pequeños (máx 10MB recomendado)</p>
+                <p style="font-size: 12px; opacity: 0.6; margin-top: 5px;">⚠️ Máximo 50MB - Recomendado: videos cortos de 10-30 segundos</p>
                 <input type="file" id="videoInput" accept="video/*" />
             </div>
             <input type="text" id="videoDescription" placeholder="Descripción del video..." style="width: 100%; padding: 12px; background: #252525; border: none; border-radius: 10px; color: #fff; margin-bottom: 15px;" />
@@ -1359,6 +1373,8 @@
         let localStream = null;
         let currentChatUser = null;
         let currentViewingUserId = null;
+
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
 
         // Autenticación
         document.getElementById('authToggle').addEventListener('click', () => {
@@ -1466,22 +1482,21 @@
             });
         }
 
-        document.getElementById('uploadVideoBtn').addEventListener('click', async () => {
-            if (!selectedVideo) {
-                alert('Por favor selecciona un video');
-                return;
+        // Función para comprimir video (dividir en chunks)
+        async function compressAndUploadVideo(file, description) {
+            const videoBase64 = await fileToBase64(file);
+            
+            // Verificar tamaño (10MB en base64 son aproximadamente 7.5MB de archivo)
+            const sizeInBytes = videoBase64.length;
+            const sizeInMB = sizeInBytes / 1024 / 1024;
+            
+            if (sizeInMB > 10) {
+                throw new Error('El video es demasiado grande. Por favor, sube un video menor a 10MB o más corto (máximo 30 segundos recomendados).');
             }
 
-            const description = document.getElementById('videoDescription').value;
-            
-            try {
-                document.getElementById('uploadVideoBtn').textContent = 'Subiendo...';
-                
-                // Convertir video a Base64
-                const videoBase64 = await fileToBase64(selectedVideo);
-
-                // Guardar en Realtime Database
-                await db.ref('videos').push({
+            // Si el video es pequeño, subir normalmente
+            if (sizeInMB < 5) {
+                return await db.ref('videos').push({
                     userId: currentUser.uid,
                     videoUrl: videoBase64,
                     description: description,
@@ -1491,17 +1506,73 @@
                     views: 0,
                     timestamp: Date.now()
                 });
+            }
+            
+            // Si el video es grande (5-10MB), dividir en chunks
+            const chunkSize = 1024 * 1024 * 4; // 4MB por chunk
+            const chunks = [];
+            
+            for (let i = 0; i < videoBase64.length; i += chunkSize) {
+                chunks.push(videoBase64.slice(i, i + chunkSize));
+            }
+            
+            const videoId = db.ref('videos').push().key;
+            
+            // Guardar chunks
+            for (let i = 0; i < chunks.length; i++) {
+                await db.ref('videoChunks/' + videoId + '/chunk' + i).set(chunks[i]);
+            }
+            
+            // Guardar metadata del video
+            await db.ref('videos/' + videoId).set({
+                userId: currentUser.uid,
+                videoUrl: 'CHUNKED', // Indicador de que está dividido en chunks
+                chunked: true,
+                chunkCount: chunks.length,
+                description: description,
+                likes: 0,
+                comments: 0,
+                shares: 0,
+                views: 0,
+                timestamp: Date.now()
+            });
+            
+            return { key: videoId };
+        }
+
+        document.getElementById('uploadVideoBtn').addEventListener('click', async () => {
+            if (!selectedVideo) {
+                alert('Por favor selecciona un video');
+                return;
+            }
+
+            // Verificar tamaño del archivo antes de procesar
+            const fileSizeInMB = selectedVideo.size / 1024 / 1024;
+            if (fileSizeInMB > 50) {
+                alert('El video es demasiado grande. Por favor, sube videos de máximo 50MB. Recomendación: videos de 10-30 segundos.');
+                return;
+            }
+
+            const description = document.getElementById('videoDescription').value;
+            
+            try {
+                document.getElementById('uploadVideoBtn').textContent = 'Subiendo... Esto puede tardar';
+                document.getElementById('uploadVideoBtn').disabled = true;
+                
+                await compressAndUploadVideo(selectedVideo, description);
 
                 document.getElementById('uploadModal').classList.remove('active');
                 document.getElementById('videoDescription').value = '';
                 document.getElementById('uploadVideoBtn').textContent = 'Publicar Video';
+                document.getElementById('uploadVideoBtn').disabled = false;
                 selectedVideo = null;
                 document.querySelector('.upload-area p').textContent = 'Haz clic para seleccionar un video';
                 loadVideos();
                 alert('¡Video subido exitosamente!');
             } catch (error) {
-                alert('Error al subir video: ' + error.message);
+                alert('Error: ' + error.message);
                 document.getElementById('uploadVideoBtn').textContent = 'Publicar Video';
+                document.getElementById('uploadVideoBtn').disabled = false;
             }
         });
 
