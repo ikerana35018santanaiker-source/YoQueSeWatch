@@ -1341,44 +1341,6 @@
             <button class="btn-primary" id="saveProfileBtn" style="width: 100%;">Guardar Cambios</button>
         </div>
     </div>
-    
-    <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { 
-    getAuth, 
-    GoogleAuthProvider, 
-    signInWithPopup 
-  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyDm58-CYHGQWOHUvFgTEScKRZP5bfaReTA",
-    authDomain: "yoquesewatch.firebaseapp.com",
-    databaseURL: "https://yoquesewatch-default-rtdb.firebaseio.com",
-    projectId: "yoquesewatch",
-    storageBucket: "yoquesewatch.firebasestorage.app",
-    messagingSenderId: "983249234884",
-    appId: "1:983249234884:web:1d1878ada535d4cd1a5291"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const provider = new GoogleAuthProvider();
-
-  const googleBtn = document.getElementById("googleLogin");
-
-  googleBtn.addEventListener("click", async () => {
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      console.log("LOGIN OK:", user.uid);
-
-    } catch (err) {
-      console.error("ERROR GOOGLE:", err);
-      alert("No se pudo iniciar sesión con Google");
-    }
-  });
-</script>
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -1423,6 +1385,18 @@
             console.error('Error al inicializar Google provider:', error);
         }
 
+        // ✅ Agregar esto DESPUÉS de inicializar googleProvider
+document.getElementById('googleLogin').addEventListener('click', async () => {
+    try {
+        const result = await auth.signInWithPopup(googleProvider);
+        // El auth.onAuthStateChanged se encargará del resto automáticamente
+        console.log("Login con Google exitoso:", result.user.uid);
+    } catch (error) {
+        console.error("Error con Google:", error);
+        alert("No se pudo iniciar sesión con Google: " + error.message);
+    }
+});
+
         // Autenticación
         document.getElementById('authToggle').addEventListener('click', () => {
             isLoginMode = !isLoginMode;
@@ -1458,26 +1432,39 @@
         });
 
         auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                currentUser = user;
-                const userData = await db.ref(`users/${user.uid}`).once('value');
-                const profile = userData.val();
-
-                document.getElementById('authScreen').style.display = 'none';
-                document.getElementById('appContainer').classList.add('active');
-                
-                // Inicializar PeerJS
-                initializePeer();
-                
-                loadVideos();
-                loadProfile();
-                loadFriends();
-            } else {
-                currentUser = null;
-                document.getElementById('authScreen').style.display = 'flex';
-                document.getElementById('appContainer').classList.remove('active');
-            }
-        });
+    if (user) {
+        currentUser = user;
+        
+        // NUEVO: Verificar si el usuario existe en la base de datos
+        const userSnapshot = await db.ref(`users/${user.uid}`).once('value');
+        
+        if (!userSnapshot.exists()) {
+            // Si es login con Google y no existe, crear perfil automáticamente
+            await db.ref(`users/${user.uid}`).set({
+                username: user.displayName || user.email.split('@')[0],
+                email: user.email,
+                avatar: user.photoURL || '',
+                followers: 0,
+                following: 0,
+                likes: 0,
+                createdAt: Date.now()
+            });
+        }
+        
+        // Resto del código...
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('appContainer').classList.add('active');
+        
+        initializePeer();
+        loadVideos();
+        loadProfile();
+        loadFriends();
+    } else {
+        currentUser = null;
+        document.getElementById('authScreen').style.display = 'flex';
+        document.getElementById('appContainer').classList.remove('active');
+    }
+});
 
         // Navegación
         document.querySelectorAll('.nav-item').forEach(item => {
