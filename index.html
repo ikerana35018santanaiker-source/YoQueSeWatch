@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YoQueSéWatch - TikTok Clone</title>
+    <title>YoQueSéWatch</title>
     <style>
         * {
             margin: 0;
@@ -909,6 +909,7 @@
             <div class="upload-area" id="uploadArea">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 <p style="margin-top: 15px;">Haz clic para seleccionar un video</p>
+                <p style="font-size: 12px; opacity: 0.6; margin-top: 5px;">Videos pequeños (máx 10MB recomendado)</p>
                 <input type="file" id="videoInput" accept="video/*" />
             </div>
             <input type="text" id="videoDescription" placeholder="Descripción del video..." style="width: 100%; padding: 12px; background: #252525; border: none; border-radius: 10px; color: #fff; margin-bottom: 15px;" />
@@ -937,7 +938,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     
     <!-- PeerJS para videollamadas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
@@ -957,7 +957,6 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.database();
-        const storage = firebase.storage();
 
         let currentUser = null;
         let isLoginMode = true;
@@ -1057,9 +1056,19 @@
         document.getElementById('videoInput').addEventListener('change', (e) => {
             selectedVideo = e.target.files[0];
             if (selectedVideo) {
-                document.querySelector('.upload-area p').textContent = `Seleccionado: ${selectedVideo.name}`;
+                document.querySelector('.upload-area p').textContent = 'Seleccionado: ' + selectedVideo.name;
             }
         });
+
+        // Función para convertir archivo a Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
 
         document.getElementById('uploadVideoBtn').addEventListener('click', async () => {
             if (!selectedVideo) {
@@ -1068,16 +1077,17 @@
             }
 
             const description = document.getElementById('videoDescription').value;
-            const videoRef = storage.ref(`videos/${currentUser.uid}/${Date.now()}_${selectedVideo.name}`);
             
             try {
                 document.getElementById('uploadVideoBtn').textContent = 'Subiendo...';
-                const snapshot = await videoRef.put(selectedVideo);
-                const videoUrl = await snapshot.ref.getDownloadURL();
+                
+                // Convertir video a Base64
+                const videoBase64 = await fileToBase64(selectedVideo);
 
+                // Guardar en Realtime Database
                 await db.ref('videos').push({
                     userId: currentUser.uid,
-                    videoUrl: videoUrl,
+                    videoUrl: videoBase64,
                     description: description,
                     likes: 0,
                     comments: 0,
@@ -1090,6 +1100,7 @@
                 document.getElementById('videoDescription').value = '';
                 document.getElementById('uploadVideoBtn').textContent = 'Publicar Video';
                 selectedVideo = null;
+                document.querySelector('.upload-area p').textContent = 'Haz clic para seleccionar un video';
                 loadVideos();
                 alert('¡Video subido exitosamente!');
             } catch (error) {
@@ -1291,14 +1302,16 @@
             if (name) updates.username = name;
 
             if (selectedAvatar) {
-                const avatarRef = storage.ref(`avatars/${currentUser.uid}`);
-                const snapshot = await avatarRef.put(selectedAvatar);
-                const avatarUrl = await snapshot.ref.getDownloadURL();
-                updates.avatar = avatarUrl;
+                // Convertir imagen a Base64
+                const avatarBase64 = await fileToBase64(selectedAvatar);
+                updates.avatar = avatarBase64;
             }
 
-            await db.ref(`users/${currentUser.uid}`).update(updates);
+            await db.ref('users/' + currentUser.uid).update(updates);
             document.getElementById('editProfileModal').classList.remove('active');
+            document.getElementById('editName').value = '';
+            selectedAvatar = null;
+            document.querySelector('#avatarUploadArea p').textContent = 'Cambiar foto de perfil';
             loadProfile();
             alert('Perfil actualizado');
         });
