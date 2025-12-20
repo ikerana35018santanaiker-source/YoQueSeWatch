@@ -2423,11 +2423,11 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
         
         // ✅ ACTUALIZAR IDIOMA AQUÍ
         updateLanguage();
-        
         initializePeer();
         loadVideos();
         loadProfile();
         loadFriends();
+        loadNotifications(); // ✅ AGREGAR ESTO
     } else {
         currentUser = null;
         document.getElementById('authScreen').style.display = 'flex';
