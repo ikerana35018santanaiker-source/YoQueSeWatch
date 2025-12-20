@@ -1,1 +1,1593 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YoQueSéWatch - TikTok Clone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .auth-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .auth-container h2 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .auth-container input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .auth-container input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .auth-container button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .app-container {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .app-container.active {
+            display: block;
+        }
+
+        .nav-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .nav-bar h1 {
+            font-size: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .nav-icons svg {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .nav-icons svg:hover {
+            transform: scale(1.1);
+        }
+
+        .video-feed {
+            margin-top: 60px;
+            height: calc(100vh - 140px);
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .video-feed::-webkit-scrollbar {
+            display: none;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 140px);
+            scroll-snap-align: start;
+            margin-bottom: 20px;
+        }
+
+        .video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #111;
+        }
+
+        .video-overlay {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            right: 80px;
+        }
+
+        .video-info {
+            margin-bottom: 10px;
+        }
+
+        .video-username {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        .video-description {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .video-actions {
+            position: absolute;
+            right: 15px;
+            bottom: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .action-btn.liked svg {
+            fill: #fe2c55;
+            color: #fe2c55;
+        }
+
+        .action-btn span {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            cursor: pointer;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 10px;
+        }
+
+        .nav-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .nav-item.active svg {
+            color: #667eea;
+        }
+
+        .nav-item span {
+            font-size: 12px;
+        }
+
+        .upload-btn {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+        }
+
+        .close-btn {
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .close-btn:hover {
+            transform: rotate(90deg);
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: #764ba2;
+        }
+
+        .upload-area input {
+            display: none;
+        }
+
+        .profile-section {
+            display: none;
+        }
+
+        .profile-section.active {
+            display: block;
+        }
+
+        .profile-header {
+            text-align: center;
+            padding: 30px 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-radius: 20px;
+            margin: 20px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            border: 3px solid #667eea;
+            cursor: pointer;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .profile-videos {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            padding: 20px;
+        }
+
+        .profile-video-thumb {
+            aspect-ratio: 9/16;
+            background: #222;
+            border-radius: 5px;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .profile-video-thumb video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-video-thumb .views {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+
+        .friends-section, .chat-section {
+            display: none;
+            padding: 80px 20px 100px;
+        }
+
+        .friends-section.active, .chat-section.active {
+            display: block;
+        }
+
+        .search-bar {
+            background: #1a1a1a;
+            padding: 12px 20px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            flex: 1;
+            outline: none;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #1a1a1a;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .user-item:hover {
+            background: #252525;
+            transform: translateX(5px);
+        }
+
+        .user-item .avatar {
+            width: 50px;
+            height: 50px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+
+        .user-username {
+            font-size: 14px;
+            opacity: 0.6;
+        }
+
+        .follow-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .follow-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .follow-btn.following {
+            background: #333;
+        }
+
+        .chat-list {
+            margin-bottom: 20px;
+        }
+
+        .chat-window {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 20px;
+            height: calc(100vh - 250px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .message.own {
+            flex-direction: row-reverse;
+        }
+
+        .message .avatar {
+            width: 35px;
+            height: 35px;
+        }
+
+        .message-content {
+            background: #252525;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+        }
+
+        .message.own .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .message-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .message-input input {
+            flex: 1;
+            background: #252525;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            color: #fff;
+            outline: none;
+        }
+
+        .send-btn {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .video-call-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #000;
+            z-index: 2000;
+            display: none;
+            flex-direction: column;
+        }
+
+        .video-call-container.active {
+            display: flex;
+        }
+
+        .video-call-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .video-call-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .video-streams {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remote-video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .local-video {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 120px;
+            height: 160px;
+            border-radius: 15px;
+            border: 2px solid #667eea;
+            object-fit: cover;
+            background: #111;
+        }
+
+        .call-controls {
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .call-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .call-btn.mute {
+            background: #333;
+        }
+
+        .call-btn.end {
+            background: #fe2c55;
+        }
+
+        .call-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .call-btn-icon {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-call-btn {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .video-call-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .video-controls {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+
+        .video-container:hover .video-controls {
+            display: block;
+        }
+
+        .play-pause-btn {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .volume-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 18px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <!-- Pantalla de autenticación -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-container">
+            <h2 id="authTitle">Iniciar Sesión</h2>
+            <input type="text" id="authUsername" placeholder="Nombre de usuario" />
+            <input type="email" id="authEmail" placeholder="Email" />
+            <input type="password" id="authPassword" placeholder="Contraseña" />
+            <button class="btn-primary" id="authSubmit">Entrar</button>
+            <button class="btn-secondary" id="authToggle">¿No tienes cuenta? Regístrate</button>
+        </div>
+    </div>
+
+    <!-- Videollamada -->
+    <div class="video-call-container" id="videoCallContainer">
+        <div class="video-call-header">
+            <div class="video-call-name" id="videoCallName">Usuario</div>
+            <div class="video-call-status" id="videoCallStatus">Conectando...</div>
+        </div>
+        <div class="video-streams">
+            <video class="remote-video" id="remoteVideo" autoplay playsinline></video>
+            <video class="local-video" id="localVideo" autoplay playsinline muted></video>
+        </div>
+        <div class="call-controls">
+            <button class="call-btn mute" id="muteBtn">
+                <div class="call-btn-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                </div>
+            </button>
+            <button class="call-btn end" id="endCallBtn">
+                <div class="call-btn-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        <line x1="23" y1="1" x2="1" y2="23"></line>
+                    </svg>
+                </div>
+            </button>
+            <button class="call-btn mute" id="videoToggleBtn">
+                <div class="call-btn-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                    </svg>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- App principal -->
+    <div class="app-container" id="appContainer">
+        <!-- Barra de navegación superior -->
+        <div class="nav-bar">
+            <h1>YoQueSéWatch</h1>
+            <div class="nav-icons">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+            </div>
+        </div>
+
+        <!-- Feed de videos -->
+        <div class="video-feed" id="videoFeed">
+            <div class="loading">Cargando videos...</div>
+        </div>
+
+        <!-- Sección de perfil -->
+        <div class="profile-section" id="profileSection">
+            <div class="profile-header">
+                <img class="profile-avatar" id="profileAvatar" src="" alt="Avatar" />
+                <h2 id="profileName">Usuario</h2>
+                <p id="profileUsername">@usuario</p>
+                <div class="profile-stats">
+                    <div class="stat">
+                        <div class="stat-number" id="profileFollowing">0</div>
+                        <div class="stat-label">Siguiendo</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="profileFollowers">0</div>
+                        <div class="stat-label">Seguidores</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="profileLikes">0</div>
+                        <div class="stat-label">Me gusta</div>
+                    </div>
+                </div>
+                <button class="follow-btn" id="editProfileBtn">Editar Perfil</button>
+            </div>
+            <div class="profile-videos" id="profileVideos"></div>
+        </div>
+
+        <!-- Sección de amigos -->
+        <div class="friends-section" id="friendsSection">
+            <div class="search-bar">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+                <input type="text" id="friendsSearch" placeholder="Buscar usuarios..." />
+            </div>
+            <div id="friendsList"></div>
+        </div>
+
+        <!-- Sección de chat -->
+        <div class="chat-section" id="chatSection">
+            <div class="chat-list" id="chatList"></div>
+            <div class="chat-window" id="chatWindow" style="display: none;">
+                <div class="messages" id="messages"></div>
+                <div class="message-input">
+                    <button class="video-call-btn" id="videoCallBtn" title="Videollamada">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                        </svg>
+                    </button>
+                    <input type="text" id="messageInput" placeholder="Escribe un mensaje..." />
+                    <button class="send-btn" id="sendMessage">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de navegación inferior -->
+        <div class="bottom-nav">
+            <div class="nav-item active" data-section="feed">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                <span>Inicio</span>
+            </div>
+            <div class="nav-item" data-section="friends">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>Amigos</span>
+            </div>
+            <div class="upload-btn" id="uploadBtn">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </div>
+            <div class="nav-item" data-section="chat">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span>Chat</span>
+            </div>
+            <div class="nav-item" data-section="profile">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Perfil</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de subir video -->
+    <div class="modal" id="uploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Subir Video</h2>
+                <svg class="close-btn" id="closeUpload" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+            <div class="upload-area" id="uploadArea">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <p style="margin-top: 15px;">Haz clic para seleccionar un video</p>
+                <input type="file" id="videoInput" accept="video/*" />
+            </div>
+            <input type="text" id="videoDescription" placeholder="Descripción del video..." style="width: 100%; padding: 12px; background: #252525; border: none; border-radius: 10px; color: #fff; margin-bottom: 15px;" />
+            <button class="btn-primary" id="uploadVideoBtn" style="width: 100%;">Publicar Video</button>
+        </div>
+    </div>
+
+    <!-- Modal de editar perfil -->
+    <div class="modal" id="editProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Editar Perfil</h2>
+                <svg class="close-btn" id="closeEditProfile" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+            <div class="upload-area" id="avatarUploadArea">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <p style="margin-top: 15px;">Cambiar foto de perfil</p>
+                <input type="file" id="avatarInput" accept="image/*" />
+            </div>
+            <input type="text" id="editName" placeholder="Nombre" style="width: 100%; padding: 12px; background: #252525; border: none; border-radius: 10px; color: #fff; margin: 10px 0;" />
+            <button class="btn-primary" id="saveProfileBtn" style="width: 100%;">Guardar Cambios</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <!-- PeerJS para videollamadas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.4.7/peerjs.min.js"></script>
+
+    <script>
+        // Inicializar Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDm58-CYHGQWOHUvFgTEScKRZP5bfaReTA",
+            authDomain: "yoquesewatch.firebaseapp.com",
+            databaseURL: "https://yoquesewatch-default-rtdb.firebaseio.com",
+            projectId: "yoquesewatch",
+            storageBucket: "yoquesewatch.firebasestorage.app",
+            messagingSenderId: "983249234884",
+            appId: "1:983249234884:web:1d1878ada535d4cd1a5291"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+        const storage = firebase.storage();
+
+        let currentUser = null;
+        let isLoginMode = true;
+        let peer = null;
+        let currentCall = null;
+        let localStream = null;
+        let currentChatUser = null;
+
+        // Autenticación
+        document.getElementById('authToggle').addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            document.getElementById('authTitle').textContent = isLoginMode ? 'Iniciar Sesión' : 'Registrarse';
+            document.getElementById('authSubmit').textContent = isLoginMode ? 'Entrar' : 'Crear Cuenta';
+            document.getElementById('authToggle').textContent = isLoginMode ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión';
+            document.getElementById('authUsername').style.display = isLoginMode ? 'none' : 'block';
+        });
+
+        document.getElementById('authSubmit').addEventListener('click', async () => {
+            const email = document.getElementById('authEmail').value;
+            const password = document.getElementById('authPassword').value;
+            const username = document.getElementById('authUsername').value;
+
+            try {
+                if (isLoginMode) {
+                    await auth.signInWithEmailAndPassword(email, password);
+                } else {
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    await db.ref(`users/${userCredential.user.uid}`).set({
+                        username: username,
+                        email: email,
+                        avatar: '',
+                        followers: 0,
+                        following: 0,
+                        likes: 0,
+                        createdAt: Date.now()
+                    });
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        });
+
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                currentUser = user;
+                const userData = await db.ref(`users/${user.uid}`).once('value');
+                const profile = userData.val();
+
+                document.getElementById('authScreen').style.display = 'none';
+                document.getElementById('appContainer').classList.add('active');
+                
+                // Inicializar PeerJS
+                initializePeer();
+                
+                loadVideos();
+                loadProfile();
+                loadFriends();
+            } else {
+                currentUser = null;
+                document.getElementById('authScreen').style.display = 'flex';
+                document.getElementById('appContainer').classList.remove('active');
+            }
+        });
+
+        // Navegación
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                
+                const section = item.dataset.section;
+                document.getElementById('videoFeed').style.display = section === 'feed' ? 'block' : 'none';
+                document.getElementById('profileSection').classList.toggle('active', section === 'profile');
+                document.getElementById('friendsSection').classList.toggle('active', section === 'friends');
+                document.getElementById('chatSection').classList.toggle('active', section === 'chat');
+
+                if (section === 'profile') loadProfile();
+                if (section === 'friends') loadFriends();
+                if (section === 'chat') loadChats();
+            });
+        });
+
+        // Subir video
+        document.getElementById('uploadBtn').addEventListener('click', () => {
+            document.getElementById('uploadModal').classList.add('active');
+        });
+
+        document.getElementById('closeUpload').addEventListener('click', () => {
+            document.getElementById('uploadModal').classList.remove('active');
+        });
+
+        document.getElementById('uploadArea').addEventListener('click', () => {
+            document.getElementById('videoInput').click();
+        });
+
+        let selectedVideo = null;
+        document.getElementById('videoInput').addEventListener('change', (e) => {
+            selectedVideo = e.target.files[0];
+            if (selectedVideo) {
+                document.querySelector('.upload-area p').textContent = `Seleccionado: ${selectedVideo.name}`;
+            }
+        });
+
+        document.getElementById('uploadVideoBtn').addEventListener('click', async () => {
+            if (!selectedVideo) {
+                alert('Por favor selecciona un video');
+                return;
+            }
+
+            const description = document.getElementById('videoDescription').value;
+            const videoRef = storage.ref(`videos/${currentUser.uid}/${Date.now()}_${selectedVideo.name}`);
+            
+            try {
+                document.getElementById('uploadVideoBtn').textContent = 'Subiendo...';
+                const snapshot = await videoRef.put(selectedVideo);
+                const videoUrl = await snapshot.ref.getDownloadURL();
+
+                await db.ref('videos').push({
+                    userId: currentUser.uid,
+                    videoUrl: videoUrl,
+                    description: description,
+                    likes: 0,
+                    comments: 0,
+                    shares: 0,
+                    views: 0,
+                    timestamp: Date.now()
+                });
+
+                document.getElementById('uploadModal').classList.remove('active');
+                document.getElementById('videoDescription').value = '';
+                document.getElementById('uploadVideoBtn').textContent = 'Publicar Video';
+                selectedVideo = null;
+                loadVideos();
+                alert('¡Video subido exitosamente!');
+            } catch (error) {
+                alert('Error al subir video: ' + error.message);
+                document.getElementById('uploadVideoBtn').textContent = 'Publicar Video';
+            }
+        });
+
+        // Cargar videos
+        async function loadVideos() {
+            const videosRef = db.ref('videos').orderByChild('timestamp');
+            const snapshot = await videosRef.once('value');
+            const videos = [];
+            
+            snapshot.forEach(child => {
+                videos.push({ id: child.key, ...child.val() });
+            });
+
+            videos.reverse();
+
+            const videoFeed = document.getElementById('videoFeed');
+            videoFeed.innerHTML = '';
+
+            for (const video of videos) {
+                const userSnapshot = await db.ref(`users/${video.userId}`).once('value');
+                const user = userSnapshot.val();
+
+                const videoContainer = document.createElement('div');
+                videoContainer.className = 'video-container';
+                videoContainer.innerHTML = `
+                    <video class="video-player" src="${video.videoUrl}" loop></video>
+                    <div class="video-controls">
+                        <div class="play-pause-btn">
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="volume-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <line x1="23" y1="9" x2="17" y2="15"></line>
+                            <line x1="17" y1="9" x2="23" y2="15"></line>
+                        </svg>
+                    </div>
+                    <div class="video-overlay">
+                        <div class="video-info">
+                            <div class="video-username">@${user?.username || 'Usuario'}</div>
+                            <div class="video-description">${video.description || ''}</div>
+                        </div>
+                    </div>
+                    <div class="video-actions">
+                        <div class="action-btn" data-action="like" data-video="${video.id}">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                            <span>${video.likes || 0}</span>
+                        </div>
+                        <div class="action-btn" data-action="comment">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <span>${video.comments || 0}</span>
+                        </div>
+                        <div class="action-btn" data-action="share">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="18" cy="5" r="3"></circle>
+                                <circle cx="6" cy="12" r="3"></circle>
+                                <circle cx="18" cy="19" r="3"></circle>
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                            <span>${video.shares || 0}</span>
+                        </div>
+                        <img class="avatar" src="${user?.avatar || ''}" alt="Avatar" />
+                    </div>
+                `;
+
+                videoFeed.appendChild(videoContainer);
+
+                const videoPlayer = videoContainer.querySelector('.video-player');
+                const playPauseBtn = videoContainer.querySelector('.play-pause-btn');
+                const volumeBtn = videoContainer.querySelector('.volume-btn');
+
+                // Auto-play cuando sea visible
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            videoPlayer.play();
+                        } else {
+                            videoPlayer.pause();
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                observer.observe(videoContainer);
+
+                // Control de reproducción
+                playPauseBtn.addEventListener('click', () => {
+                    if (videoPlayer.paused) {
+                        videoPlayer.play();
+                        playPauseBtn.innerHTML = `<svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+                            <rect x="6" y="4" width="4" height="16"></rect>
+                            <rect x="14" y="4" width="4" height="16"></rect>
+                        </svg>`;
+                    } else {
+                        videoPlayer.pause();
+                        playPauseBtn.innerHTML = `<svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>`;
+                    }
+                });
+
+                // Control de volumen
+                volumeBtn.addEventListener('click', () => {
+                    videoPlayer.muted = !videoPlayer.muted;
+                    volumeBtn.innerHTML = videoPlayer.muted ? 
+                        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <line x1="23" y1="9" x2="17" y2="15"></line>
+                            <line x1="17" y1="9" x2="23" y2="15"></line>
+                        </svg>` :
+                        `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>`;
+                });
+
+                // Like
+                const likeBtn = videoContainer.querySelector('[data-action="like"]');
+                likeBtn.addEventListener('click', async () => {
+                    if (!likeBtn.classList.contains('liked')) {
+                        likeBtn.classList.add('liked');
+                        await db.ref(`videos/${video.id}/likes`).set((video.likes || 0) + 1);
+                        likeBtn.querySelector('span').textContent = (video.likes || 0) + 1;
+                    }
+                });
+            }
+        }
+
+        // Cargar perfil
+        async function loadProfile() {
+            const userSnapshot = await db.ref(`users/${currentUser.uid}`).once('value');
+            const userData = userSnapshot.val();
+
+            document.getElementById('profileName').textContent = userData.username;
+            document.getElementById('profileUsername').textContent = `@${userData.username}`;
+            document.getElementById('profileFollowing').textContent = userData.following || 0;
+            document.getElementById('profileFollowers').textContent = userData.followers || 0;
+            document.getElementById('profileLikes').textContent = userData.likes || 0;
+            
+            if (userData.avatar) {
+                document.getElementById('profileAvatar').src = userData.avatar;
+            }
+
+            // Cargar videos del usuario
+            const videosSnapshot = await db.ref('videos').orderByChild('userId').equalTo(currentUser.uid).once('value');
+            const profileVideos = document.getElementById('profileVideos');
+            profileVideos.innerHTML = '';
+
+            videosSnapshot.forEach(child => {
+                const video = child.val();
+                const videoThumb = document.createElement('div');
+                videoThumb.className = 'profile-video-thumb';
+                videoThumb.innerHTML = `
+                    <video src="${video.videoUrl}"></video>
+                    <div class="views">${video.views || 0} views</div>
+                `;
+                profileVideos.appendChild(videoThumb);
+            });
+        }
+
+        // Editar perfil
+        document.getElementById('editProfileBtn').addEventListener('click', () => {
+            document.getElementById('editProfileModal').classList.add('active');
+        });
+
+        document.getElementById('closeEditProfile').addEventListener('click', () => {
+            document.getElementById('editProfileModal').classList.remove('active');
+        });
+
+        document.getElementById('avatarUploadArea').addEventListener('click', () => {
+            document.getElementById('avatarInput').click();
+        });
+
+        let selectedAvatar = null;
+        document.getElementById('avatarInput').addEventListener('change', (e) => {
+            selectedAvatar = e.target.files[0];
+            if (selectedAvatar) {
+                document.querySelector('#avatarUploadArea p').textContent = 'Imagen seleccionada';
+            }
+        });
+
+        document.getElementById('saveProfileBtn').addEventListener('click', async () => {
+            const name = document.getElementById('editName').value;
+            const updates = {};
+
+            if (name) updates.username = name;
+
+            if (selectedAvatar) {
+                const avatarRef = storage.ref(`avatars/${currentUser.uid}`);
+                const snapshot = await avatarRef.put(selectedAvatar);
+                const avatarUrl = await snapshot.ref.getDownloadURL();
+                updates.avatar = avatarUrl;
+            }
+
+            await db.ref(`users/${currentUser.uid}`).update(updates);
+            document.getElementById('editProfileModal').classList.remove('active');
+            loadProfile();
+            alert('Perfil actualizado');
+        });
+
+        // Cargar amigos
+        async function loadFriends() {
+            const usersSnapshot = await db.ref('users').once('value');
+            const friendsList = document.getElementById('friendsList');
+            const chatList = document.getElementById('chatList');
+            friendsList.innerHTML = '';
+            chatList.innerHTML = '';
+
+            usersSnapshot.forEach(child => {
+                if (child.key !== currentUser.uid) {
+                    const user = child.val();
+                    
+                    // Lista de amigos
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.innerHTML = `
+                        <img class="avatar" src="${user.avatar || ''}" alt="Avatar" />
+                        <div class="user-info">
+                            <div class="user-name">${user.username}</div>
+                            <div class="user-username">@${user.username}</div>
+                        </div>
+                        <button class="follow-btn" data-user="${child.key}">Seguir</button>
+                    `;
+                    friendsList.appendChild(userItem);
+
+                    const followBtn = userItem.querySelector('.follow-btn');
+                    followBtn.addEventListener('click', async () => {
+                        if (followBtn.classList.contains('following')) {
+                            followBtn.classList.remove('following');
+                            followBtn.textContent = 'Seguir';
+                        } else {
+                            followBtn.classList.add('following');
+                            followBtn.textContent = 'Siguiendo';
+                            
+                            await db.ref(`followers/${child.key}/${currentUser.uid}`).set(true);
+                            await db.ref(`following/${currentUser.uid}/${child.key}`).set(true);
+                        }
+                    });
+
+                    // Lista de chats
+                    const chatItem = document.createElement('div');
+                    chatItem.className = 'user-item';
+                    chatItem.innerHTML = `
+                        <img class="avatar" src="${user.avatar || ''}" alt="Avatar" />
+                        <div class="user-info">
+                            <div class="user-name">${user.username}</div>
+                            <div class="user-username">Click para chatear</div>
+                        </div>
+                    `;
+                    chatList.appendChild(chatItem);
+
+                    chatItem.addEventListener('click', () => {
+                        currentChatUser = child.key;
+                        document.getElementById('chatWindow').style.display = 'flex';
+                        document.getElementById('chatList').style.display = 'none';
+                        loadMessages(child.key);
+                    });
+                }
+            });
+        }
+
+        // Sistema de chat básico
+        function loadChats() {
+            const chatList = document.getElementById('chatList');
+            chatList.innerHTML = '<div class="loading">Selecciona un amigo para chatear</div>';
+        }
+
+        // Inicializar PeerJS
+        function initializePeer() {
+            peer = new Peer(currentUser.uid);
+            
+            peer.on('open', (id) => {
+                console.log('Mi peer ID:', id);
+                // Guardar peer ID en Firebase
+                db.ref(`users/${currentUser.uid}/peerId`).set(id);
+            });
+
+            peer.on('call', (call) => {
+                // Recibir llamada
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    .then((stream) => {
+                        localStream = stream;
+                        document.getElementById('localVideo').srcObject = stream;
+                        
+                        call.answer(stream);
+                        
+                        call.on('stream', (remoteStream) => {
+                            document.getElementById('remoteVideo').srcObject = remoteStream;
+                            document.getElementById('videoCallContainer').classList.add('active');
+                            document.getElementById('videoCallStatus').textContent = 'Conectado';
+                        });
+                        
+                        currentCall = call;
+                    })
+                    .catch((err) => {
+                        console.error('Error al acceder a la cámara:', err);
+                        alert('No se pudo acceder a la cámara y micrófono');
+                    });
+            });
+        }
+
+        // Hacer videollamada
+        document.getElementById('videoCallBtn').addEventListener('click', async () => {
+            if (!currentChatUser) return;
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                localStream = stream;
+                document.getElementById('localVideo').srcObject = stream;
+
+                // Obtener peer ID del otro usuario
+                const peerSnapshot = await db.ref(`users/${currentChatUser}/peerId`).once('value');
+                const remotePeerId = peerSnapshot.val();
+
+                if (!remotePeerId) {
+                    alert('El usuario no está disponible para videollamadas');
+                    return;
+                }
+
+                const call = peer.call(remotePeerId, stream);
+                currentCall = call;
+
+                call.on('stream', (remoteStream) => {
+                    document.getElementById('remoteVideo').srcObject = remoteStream;
+                    document.getElementById('videoCallContainer').classList.add('active');
+                    document.getElementById('videoCallStatus').textContent = 'Conectado';
+                });
+
+                // Mostrar nombre del usuario
+                const userSnapshot = await db.ref(`users/${currentChatUser}`).once('value');
+                const userData = userSnapshot.val();
+                document.getElementById('videoCallName').textContent = userData.username;
+
+            } catch (err) {
+                console.error('Error al iniciar llamada:', err);
+                alert('No se pudo acceder a la cámara y micrófono');
+            }
+        });
+
+        // Finalizar llamada
+        document.getElementById('endCallBtn').addEventListener('click', () => {
+            if (currentCall) {
+                currentCall.close();
+            }
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById('videoCallContainer').classList.remove('active');
+            document.getElementById('localVideo').srcObject = null;
+            document.getElementById('remoteVideo').srcObject = null;
+        });
+
+        // Mutear/desmutear
+        document.getElementById('muteBtn').addEventListener('click', () => {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                audioTrack.enabled = !audioTrack.enabled;
+                document.getElementById('muteBtn').style.background = audioTrack.enabled ? '#333' : '#fe2c55';
+            }
+        });
+
+        // Activar/desactivar video
+        document.getElementById('videoToggleBtn').addEventListener('click', () => {
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                videoTrack.enabled = !videoTrack.enabled;
+                document.getElementById('videoToggleBtn').style.background = videoTrack.enabled ? '#333' : '#fe2c55';
+            }
+        });
+
+        // Mejorar el sistema de chat para seleccionar usuario
+        async function loadFriends() {
+            const usersSnapshot = await db.ref('users').once('value');
+            const friendsList = document.getElementById('friendsList');
+            const chatList = document.getElementById('chatList');
+            friendsList.innerHTML = '';
+            chatList.innerHTML = '';
+
+            usersSnapshot.forEach(child => {
+                if (child.key !== currentUser.uid) {
+                    const user = child.val();
+                    
+                    // Lista de amigos
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.innerHTML = `
+                        <img class="avatar" src="${user.avatar || ''}" alt="Avatar" />
+                        <div class="user-info">
+                            <div class="user-name">${user.username}</div>
+                            <div class="user-username">@${user.username}</div>
+                        </div>
+                        <button class="follow-btn" data-user="${child.key}">Seguir</button>
+                    `;
+                    friendsList.appendChild(userItem);
+
+                    const followBtn = userItem.querySelector('.follow-btn');
+                    followBtn.addEventListener('click', async () => {
+                        if (followBtn.classList.contains('following')) {
+                            followBtn.classList.remove('following');
+                            followBtn.textContent = 'Seguir';
+                        } else {
+                            followBtn.classList.add('following');
+                            followBtn.textContent = 'Siguiendo';
+                            
+                            await db.ref(`followers/${child.key}/${currentUser.uid}`).set(true);
+                            await db.ref(`following/${currentUser.uid}/${child.key}`).set(true);
+                        }
+                    });
+
+                    // Lista de chats
+                    const chatItem = document.createElement('div');
+                    chatItem.className = 'user-item';
+                    chatItem.innerHTML = `
+                        <img class="avatar" src="${user.avatar || ''}" alt="Avatar" />
+                        <div class="user-info">
+                            <div class="user-name">${user.username}</div>
+                            <div class="user-username">Click para chatear</div>
+                        </div>
+                    `;
+                    chatList.appendChild(chatItem);
+
+                    chatItem.addEventListener('click', () => {
+                        currentChatUser = child.key;
+                        document.getElementById('chatWindow').style.display = 'flex';
+                        document.getElementById('chatList').style.display = 'none';
+                        loadMessages(child.key);
+                    });
+                }
+            });
+        }
+
+        // Cargar mensajes
+        function loadMessages(userId) {
+            const chatId = [currentUser.uid, userId].sort().join('_');
+            const messagesRef = db.ref(`chats/${chatId}/messages`);
+            
+            messagesRef.on('value', (snapshot) => {
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML = '';
+                
+                snapshot.forEach(child => {
+                    const message = child.val();
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `message ${message.senderId === currentUser.uid ? 'own' : ''}`;
+                    messageDiv.innerHTML = `
+                        <img class="avatar" src="${message.avatar || ''}" alt="Avatar" />
+                        <div class="message-content">${message.text}</div>
+                    `;
+                    messagesDiv.appendChild(messageDiv);
+                });
+                
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            });
+        }
+
+        // Enviar mensaje
+        document.getElementById('sendMessage').addEventListener('click', async () => {
+            const messageInput = document.getElementById('messageInput');
+            const text = messageInput.value.trim();
+            
+            if (text && currentChatUser) {
+                const chatId = [currentUser.uid, currentChatUser].sort().join('_');
+                const userSnapshot = await db.ref(`users/${currentUser.uid}`).once('value');
+                const userData = userSnapshot.val();
+                
+                await db.ref(`chats/${chatId}/messages`).push({
+                    senderId: currentUser.uid,
+                    text: text,
+                    avatar: userData.avatar || '',
+                    timestamp: Date.now()
+                });
+                
+                messageInput.value = '';
+            }
+        });
+
+        // Enter para enviar mensaje
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('sendMessage').click();
+            }
+        });
+
+        // Inicializar
+        document.getElementById('authUsername').style.display = 'none';
+    </script>
+</body>
+</html>
