@@ -2171,14 +2171,59 @@
 
         // Búsqueda desde la barra superior
         document.getElementById('openSearchBtn').addEventListener('click', () => {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.querySelector('[data-section="friends"]').classList.add('active');
-            document.getElementById('videoFeed').style.display = 'none';
-            document.getElementById('profileSection').classList.remove('active');
-            document.getElementById('friendsSection').classList.add('active');
-            document.getElementById('chatSection').classList.remove('active');
-            document.getElementById('settingsSection').classList.remove('active');
-            document.getElementById('friendsSearch').focus();
+            document.getElementById('globalSearchBar').style.display = 'block';
+            document.getElementById('globalSearch').focus();
+        });
+
+        document.getElementById('closeGlobalSearch').addEventListener('click', () => {
+            document.getElementById('globalSearchBar').style.display = 'none';
+            document.getElementById('globalSearch').value = '';
+            document.getElementById('globalSearchResults').innerHTML = '';
+        });
+
+        // Búsqueda global en tiempo real
+        document.getElementById('globalSearch').addEventListener('input', async (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const searchResults = document.getElementById('globalSearchResults');
+            
+            if (!query) {
+                searchResults.innerHTML = '';
+                return;
+            }
+
+            const usersSnapshot = await db.ref('users').once('value');
+            searchResults.innerHTML = '';
+            
+            let found = false;
+            usersSnapshot.forEach(child => {
+                if (child.key !== currentUser.uid) {
+                    const user = child.val();
+                    const username = (user.username || '').toLowerCase();
+                    const email = (user.email || '').toLowerCase();
+                    
+                    if (username.includes(query) || email.includes(query)) {
+                        found = true;
+                        const userItem = document.createElement('div');
+                        userItem.className = 'user-item';
+                        userItem.style.margin = '0';
+                        userItem.style.borderRadius = '0';
+                        userItem.innerHTML = '<img class="avatar" src="' + (user.avatar || '') + '" alt="Avatar" /><div class="user-info"><div class="user-name">' + user.username + '</div><div class="user-username">@' + user.username + '</div></div>';
+                        
+                        userItem.addEventListener('click', () => {
+                            openUserProfile(child.key);
+                            document.getElementById('globalSearchBar').style.display = 'none';
+                            document.getElementById('globalSearch').value = '';
+                            searchResults.innerHTML = '';
+                        });
+                        
+                        searchResults.appendChild(userItem);
+                    }
+                }
+            });
+            
+            if (!found && query) {
+                searchResults.innerHTML = '<div style="padding: 20px; text-align: center; opacity: 0.6;">No se encontraron usuarios</div>';
+            }
         });
 
         // Función para abrir perfil de usuario
