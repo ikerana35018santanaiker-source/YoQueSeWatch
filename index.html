@@ -3068,8 +3068,7 @@ videosSnapshot.forEach(child => {
             alert('Perfil actualizado');
         });
 
-        // Cargar amigos
-        async function loadFriends() {
+async function loadFriends() {
     const usersSnapshot = await db.ref('users').once('value');
     const friendsList = document.getElementById('friendsList');
     const chatList = document.getElementById('chatList');
@@ -3107,14 +3106,45 @@ videosSnapshot.forEach(child => {
                     // Dejar de seguir
                     followBtn.classList.remove('following');
                     followBtn.textContent = 'Seguir';
+                    
+                    // Eliminar relaciones
                     await db.ref(`followers/${userId}/${currentUser.uid}`).remove();
                     await db.ref(`following/${currentUser.uid}/${userId}`).remove();
+                    
+                    // ✅ ACTUALIZAR CONTADORES
+                    // Decrementar followers del usuario que dejamos de seguir
+                    const targetUserSnapshot = await db.ref(`users/${userId}`).once('value');
+                    const targetUser = targetUserSnapshot.val();
+                    const newFollowers = Math.max(0, (targetUser.followers || 0) - 1);
+                    await db.ref(`users/${userId}/followers`).set(newFollowers);
+                    
+                    // Decrementar following del usuario actual
+                    const currentUserSnapshot = await db.ref(`users/${currentUser.uid}`).once('value');
+                    const currentUserData = currentUserSnapshot.val();
+                    const newFollowing = Math.max(0, (currentUserData.following || 0) - 1);
+                    await db.ref(`users/${currentUser.uid}/following`).set(newFollowing);
+                    
                 } else {
                     // Seguir
                     followBtn.classList.add('following');
                     followBtn.textContent = 'Siguiendo';
+                    
+                    // Crear relaciones
                     await db.ref(`followers/${userId}/${currentUser.uid}`).set(true);
                     await db.ref(`following/${currentUser.uid}/${userId}`).set(true);
+                    
+                    // ✅ ACTUALIZAR CONTADORES
+                    // Incrementar followers del usuario que seguimos
+                    const targetUserSnapshot = await db.ref(`users/${userId}`).once('value');
+                    const targetUser = targetUserSnapshot.val();
+                    const newFollowers = (targetUser.followers || 0) + 1;
+                    await db.ref(`users/${userId}/followers`).set(newFollowers);
+                    
+                    // Incrementar following del usuario actual
+                    const currentUserSnapshot = await db.ref(`users/${currentUser.uid}`).once('value');
+                    const currentUserData = currentUserSnapshot.val();
+                    const newFollowing = (currentUserData.following || 0) + 1;
+                    await db.ref(`users/${currentUser.uid}/following`).set(newFollowing);
                     
                     // Enviar notificación
                     await sendFollowNotification(userId);
@@ -3148,7 +3178,8 @@ videosSnapshot.forEach(child => {
             });
         }
     }
-}
+                }
+        
         // Sistema de chat básico
         function loadChats() {
             const chatList = document.getElementById('chatList');
