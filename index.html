@@ -3646,164 +3646,66 @@ function goToVideo(videoId) {
             }
         });
 
-        // Función para abrir perfil de usuario
-        async function openUserProfile(userId) {
-            currentViewingUserId = userId;
-            const userSnapshot = await db.ref('users/' + userId).once('value');
-            const userData = userSnapshot.val();
+        
+async function openUserProfile(userId) {
+    currentViewingUserId = userId;
+    const userSnapshot = await db.ref('users/' + userId).once('value');
+    const userData = userSnapshot.val();
 
-            document.getElementById('viewProfileName').textContent = userData.username;
-            document.getElementById('viewProfileUsername').textContent = '@' + userData.username;
-            document.getElementById('viewProfileFollowing').textContent = userData.following || 0;
-            document.getElementById('viewProfileFollowers').textContent = userData.followers || 0;
-            document.getElementById('viewProfileLikes').textContent = userData.likes || 0;
-            
-            if (userData.avatar) {
-                document.getElementById('viewProfileAvatar').src = userData.avatar;
-            } else {
-                document.getElementById('viewProfileAvatar').src = '';
-            }
+    // ✅ SINCRONIZAR CONTADORES
+    const realFollowers = await getFollowersCount(userId);
+    const realFollowing = await getFollowingCount(userId);
 
-            // Verificar si ya sigue al usuario
-            const followingSnapshot = await db.ref('following/' + currentUser.uid + '/' + userId).once('value');
-            const isFollowing = followingSnapshot.exists();
-            
-            const followBtn = document.getElementById('followUserBtn');
-            if (isFollowing) {
-                followBtn.textContent = 'Siguiendo';
-                followBtn.classList.remove('primary');
-                followBtn.classList.add('secondary');
-                followBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>Siguiendo';
-            } else {
-                followBtn.textContent = 'Seguir';
-                followBtn.classList.add('primary');
-                followBtn.classList.remove('secondary');
-                followBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>Seguir';
-            }
-
-            const videosSnapshot = await db.ref('videos').orderByChild('userId').equalTo(userId).once('value');
-const viewProfileVideos = document.getElementById('viewProfileVideos');
-viewProfileVideos.innerHTML = '';
-
-videosSnapshot.forEach(child => {
-    const video = child.val();
-    const videoThumb = document.createElement('div');
-    videoThumb.className = 'profile-video-thumb';
-    videoThumb.dataset.videoId = child.key;
-    videoThumb.innerHTML = `
-        <video src="${video.videoUrl}"></video>
-        <div class="views">${video.views || 0} views</div>
-    `;
+    document.getElementById('viewProfileName').textContent = userData.username;
+    document.getElementById('viewProfileUsername').textContent = '@' + userData.username;
+    document.getElementById('viewProfileFollowing').textContent = realFollowing;
+    document.getElementById('viewProfileFollowers').textContent = realFollowers;
+    document.getElementById('viewProfileLikes').textContent = userData.likes || 0;
     
-    // ✅ Hacer clickeable el thumbnail
-    videoThumb.addEventListener('click', () => {
-        goToVideo(child.key);
-    });
-    
-    viewProfileVideos.appendChild(videoThumb);
-});
+    if (userData.avatar) {
+        document.getElementById('viewProfileAvatar').src = userData.avatar;
+    } else {
+        document.getElementById('viewProfileAvatar').src = '';
+    }
 
-            document.getElementById('userProfileView').classList.add('active');
-        }
-
-        // Cerrar perfil de usuario
-        document.getElementById('closeUserProfile').addEventListener('click', () => {
-            document.getElementById('userProfileView').classList.remove('active');
-            currentViewingUserId = null;
-        });
-
-        // Seguir/Dejar de seguir usuario
-document.getElementById('followUserBtn').addEventListener('click', async () => {
-    if (!currentViewingUserId) return;
-    
-    const followBtn = document.getElementById('followUserBtn');
-    const followingSnapshot = await db.ref(`following/${currentUser.uid}/${currentViewingUserId}`).once('value');
+    // Verificar si ya sigue al usuario
+    const followingSnapshot = await db.ref('following/' + currentUser.uid + '/' + userId).once('value');
     const isFollowing = followingSnapshot.exists();
     
+    const followBtn = document.getElementById('followUserBtn');
     if (isFollowing) {
-        // Dejar de seguir
-        await db.ref(`followers/${currentViewingUserId}/${currentUser.uid}`).remove();
-        await db.ref(`following/${currentUser.uid}/${currentViewingUserId}`).remove();
-        
-        // ✅ ACTUALIZAR CONTADORES
-        // Decrementar followers del usuario que dejamos de seguir
-        const targetUserSnapshot = await db.ref(`users/${currentViewingUserId}`).once('value');
-        const targetUser = targetUserSnapshot.val();
-        const newFollowers = Math.max(0, (targetUser.followers || 0) - 1);
-        await db.ref(`users/${currentViewingUserId}/followers`).set(newFollowers);
-        
-        // Decrementar following del usuario actual
-        const currentUserSnapshot = await db.ref(`users/${currentUser.uid}`).once('value');
-        const currentUserData = currentUserSnapshot.val();
-        const newFollowing = Math.max(0, (currentUserData.following || 0) - 1);
-        await db.ref(`users/${currentUser.uid}/following`).set(newFollowing);
-        
-        // Actualizar UI
-        followBtn.classList.add('primary');
-        followBtn.classList.remove('secondary');
-        followBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>Seguir';
-        
-        // Actualizar contador en la vista
-        document.getElementById('viewProfileFollowers').textContent = newFollowers;
-        
-    } else {
-        // Seguir
-        await db.ref(`followers/${currentViewingUserId}/${currentUser.uid}`).set(true);
-        await db.ref(`following/${currentUser.uid}/${currentViewingUserId}`).set(true);
-        
-        // ✅ ACTUALIZAR CONTADORES
-        // Incrementar followers del usuario que seguimos
-        const targetUserSnapshot = await db.ref(`users/${currentViewingUserId}`).once('value');
-        const targetUser = targetUserSnapshot.val();
-        const newFollowers = (targetUser.followers || 0) + 1;
-        await db.ref(`users/${currentViewingUserId}/followers`).set(newFollowers);
-        
-        // Incrementar following del usuario actual
-        const currentUserSnapshot = await db.ref(`users/${currentUser.uid}`).once('value');
-        const currentUserData = currentUserSnapshot.val();
-        const newFollowing = (currentUserData.following || 0) + 1;
-        await db.ref(`users/${currentUser.uid}/following`).set(newFollowing);
-        
-        // Actualizar UI
+        followBtn.textContent = 'Siguiendo';
         followBtn.classList.remove('primary');
         followBtn.classList.add('secondary');
         followBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>Siguiendo';
-        
-        // Actualizar contador en la vista
-        document.getElementById('viewProfileFollowers').textContent = newFollowers;
-        
-        // Enviar notificación
-        await sendFollowNotification(currentViewingUserId);
+    } else {
+        followBtn.textContent = 'Seguir';
+        followBtn.classList.add('primary');
+        followBtn.classList.remove('secondary');
+        followBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>Seguir';
     }
-});
 
-        // Chatear con usuario - VERIFICAR QUE EL BOTÓN EXISTE
-        // Chatear con usuario - ARREGLADO
-document.getElementById('chatUserBtn').addEventListener('click', () => {
-    if (!currentViewingUserId) {
-        alert('Error: No se pudo identificar al usuario');
-        return;
-    }
-    
-    // Cerrar vista de perfil
-    document.getElementById('userProfileView').classList.remove('active');
-    
-    // Ir a la sección de chat
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    document.querySelector('[data-section="chat"]').classList.add('active');
-    
-    document.getElementById('videoFeed').style.display = 'none';
-    document.getElementById('profileSection').classList.remove('active');
-    document.getElementById('friendsSection').classList.remove('active');
-    document.getElementById('chatSection').classList.add('active');
-    document.getElementById('settingsSection').classList.remove('active');
-    
-    // Abrir chat
-    currentChatUser = currentViewingUserId;
-    document.getElementById('chatWindow').style.display = 'flex';
-    document.getElementById('chatList').style.display = 'none';
-    loadMessages(currentViewingUserId);
-});
+    // Cargar videos del usuario
+    const videosSnapshot = await db.ref('videos').orderByChild('userId').equalTo(userId).once('value');
+    const viewProfileVideos = document.getElementById('viewProfileVideos');
+    viewProfileVideos.innerHTML = '';
+
+    videosSnapshot.forEach(child => {
+        const video = child.val();
+        const videoThumb = document.createElement('div');
+        videoThumb.className = 'profile-video-thumb';
+        videoThumb.dataset.videoId = child.key;
+        videoThumb.innerHTML = '<video src="' + video.videoUrl + '"></video><div class="views">' + (video.views || 0) + ' views</div>';
+        
+        videoThumb.addEventListener('click', () => {
+            goToVideo(child.key);
+        });
+        
+        viewProfileVideos.appendChild(videoThumb);
+    });
+
+    document.getElementById('userProfileView').classList.add('active');
+}
 
         // Eliminar cuenta
         document.getElementById('deleteAccountBtn').addEventListener('click', () => {
