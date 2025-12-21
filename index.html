@@ -3013,43 +3013,54 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
     }
 }
 
-        // Cargar perfil
         async function loadProfile() {
-            const userSnapshot = await db.ref(`users/${currentUser.uid}`).once('value');
-            const userData = userSnapshot.val();
+    const userSnapshot = await db.ref(`users/${currentUser.uid}`).once('value');
+    const userData = userSnapshot.val();
 
-            document.getElementById('profileName').textContent = userData.username;
-            document.getElementById('profileUsername').textContent = `@${userData.username}`;
-            document.getElementById('profileFollowing').textContent = userData.following || 0;
-            document.getElementById('profileFollowers').textContent = userData.followers || 0;
-            document.getElementById('profileLikes').textContent = userData.likes || 0;
-            
-            if (userData.avatar) {
-                document.getElementById('profileAvatar').src = userData.avatar;
-            }
-
-            const videosSnapshot = await db.ref('videos').orderByChild('userId').equalTo(currentUser.uid).once('value');
-const profileVideos = document.getElementById('profileVideos');
-profileVideos.innerHTML = '';
-
-videosSnapshot.forEach(child => {
-    const video = child.val();
-    const videoThumb = document.createElement('div');
-    videoThumb.className = 'profile-video-thumb';
-    videoThumb.dataset.videoId = child.key; // ✅ Guardar ID del video
-    videoThumb.innerHTML = `
-        <video src="${video.videoUrl}"></video>
-        <div class="views">${video.views || 0} views</div>
-    `;
+    // ✅ SINCRONIZAR CONTADORES AL CARGAR
+    const realFollowers = await getFollowersCount(currentUser.uid);
+    const realFollowing = await getFollowingCount(currentUser.uid);
     
-    // ✅ Hacer clickeable el thumbnail
-    videoThumb.addEventListener('click', () => {
-        goToVideo(child.key);
+    // Si hay diferencias, actualizar
+    if (realFollowers !== userData.followers || realFollowing !== userData.following) {
+        await db.ref(`users/${currentUser.uid}`).update({
+            followers: realFollowers,
+            following: realFollowing
+        });
+    }
+
+    document.getElementById('profileName').textContent = userData.username;
+    document.getElementById('profileUsername').textContent = `@${userData.username}`;
+    document.getElementById('profileFollowing').textContent = realFollowing;
+    document.getElementById('profileFollowers').textContent = realFollowers;
+    document.getElementById('profileLikes').textContent = userData.likes || 0;
+    
+    if (userData.avatar) {
+        document.getElementById('profileAvatar').src = userData.avatar;
+    }
+
+    // Cargar videos del usuario
+    const videosSnapshot = await db.ref('videos').orderByChild('userId').equalTo(currentUser.uid).once('value');
+    const profileVideos = document.getElementById('profileVideos');
+    profileVideos.innerHTML = '';
+
+    videosSnapshot.forEach(child => {
+        const video = child.val();
+        const videoThumb = document.createElement('div');
+        videoThumb.className = 'profile-video-thumb';
+        videoThumb.dataset.videoId = child.key;
+        videoThumb.innerHTML = `
+            <video src="${video.videoUrl}"></video>
+            <div class="views">${video.views || 0} views</div>
+        `;
+        
+        videoThumb.addEventListener('click', () => {
+            goToVideo(child.key);
+        });
+        
+        profileVideos.appendChild(videoThumb);
     });
-    
-    profileVideos.appendChild(videoThumb);
-});
-        }
+                           }
 
         // Editar perfil
         document.getElementById('editProfileBtn').addEventListener('click', () => {
