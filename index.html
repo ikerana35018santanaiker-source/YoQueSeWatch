@@ -1971,6 +1971,31 @@ document.getElementById('globalSearch').addEventListener('input', async (e) => {
     }
 });
 
+        // Función para contar seguidores reales
+async function getFollowersCount(userId) {
+    const snapshot = await db.ref(`followers/${userId}`).once('value');
+    return snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+}
+
+// Función para contar siguiendo reales
+async function getFollowingCount(userId) {
+    const snapshot = await db.ref(`following/${userId}`).once('value');
+    return snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+}
+
+// Función para sincronizar contadores (llamar si hay inconsistencias)
+async function syncFollowCounts(userId) {
+    const followersCount = await getFollowersCount(userId);
+    const followingCount = await getFollowingCount(userId);
+    
+    await db.ref(`users/${userId}`).update({
+        followers: followersCount,
+        following: followingCount
+    });
+    
+    console.log(`Sincronizados contadores para ${userId}: ${followersCount} followers, ${followingCount} following`);
+}
+
 // Sistema de notificaciones
 async function loadNotifications() {
     if (!currentUser) return;
