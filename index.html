@@ -3084,9 +3084,30 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
         videoThumb.className = 'profile-video-thumb';
         videoThumb.dataset.videoId = child.key;
         videoThumb.innerHTML = `
-            <video src="${video.videoUrl}"></video>
-            <div class="views">${video.views || 0} views</div>
-        `;
+    <video src="${video.videoUrl}"></video>
+    <div class="views">${video.views || 0} views</div>
+    <div class="delete-video-btn" data-video-id="${child.key}">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+    </div>
+`;
+
+// Agregar evento para eliminar
+const deleteBtn = videoThumb.querySelector('.delete-video-btn');
+deleteBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    showConfirmModal(
+        '¿Eliminar video?',
+        'Esta acción no se puede deshacer',
+        async () => {
+            await db.ref('videos/' + child.key).remove();
+            loadProfile();
+            alert('Video eliminado');
+        }
+    );
+});
         
         videoThumb.addEventListener('click', () => {
             goToVideo(child.key);
@@ -3857,6 +3878,196 @@ document.getElementById('chatUserBtn').addEventListener('click', () => {
         window.addEventListener('DOMContentLoaded', () => {
             console.log('DOM completamente cargado');
         });
+
+        // Variables para tipo de video
+let selectedVideoType = 'short'; // short o long
+
+// Selector de tipo de video
+document.querySelectorAll('.video-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.video-type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedVideoType = btn.dataset.type;
+    });
+});
+
+// Navegación del sidebar
+document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', () => {
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        
+        const section = item.dataset.section;
+        
+        // Ocultar todas las secciones
+        document.getElementById('videoFeed').style.display = 'none';
+        document.getElementById('profileSection').classList.remove('active');
+        document.getElementById('friendsSection').classList.remove('active');
+        document.getElementById('chatSection').classList.remove('active');
+        document.getElementById('settingsSection').classList.remove('active');
+        
+        // Mostrar sección correspondiente
+        if (section === 'feed') {
+            document.getElementById('videoFeed').style.display = 'block';
+            document.getElementById('videoFeed').className = 'video-feed mixed-mode';
+            loadMixedVideos();
+        } else if (section === 'shorts') {
+            document.getElementById('videoFeed').style.display = 'block';
+            document.getElementById('videoFeed').className = 'video-feed shorts-mode';
+            loadShorts();
+        } else if (section === 'longs') {
+            document.getElementById('videoFeed').style.display = 'block';
+            document.getElementById('videoFeed').className = 'video-feed longs-mode';
+            loadLongs();
+        } else if (section === 'profile') {
+            document.getElementById('profileSection').classList.add('active');
+            loadProfile();
+        } else if (section === 'friends') {
+            document.getElementById('friendsSection').classList.add('active');
+            loadFriends();
+        } else if (section === 'chat') {
+            document.getElementById('chatSection').classList.add('active');
+            loadChats();
+        } else if (section === 'settings') {
+            document.getElementById('settingsSection').classList.add('active');
+        }
+    });
+});
+
+// Cargar videos mixtos (shorts + longs)
+async function loadMixedVideos() {
+    const videosRef = db.ref('videos').orderByChild('timestamp');
+    const snapshot = await videosRef.once('value');
+    const videos = [];
+    
+    snapshot.forEach(child => {
+        videos.push({ id: child.key, ...child.val() });
+    });
+    
+    videos.reverse();
+    
+    const videoFeed = document.getElementById('videoFeed');
+    videoFeed.innerHTML = '';
+    
+    for (const video of videos) {
+        const userSnapshot = await db.ref(`users/${video.userId}`).once('value');
+        const user = userSnapshot.val();
+        
+        const isLong = video.type === 'long';
+        
+        if (isLong) {
+            // Mostrar como video horizontal
+            const longContainer = document.createElement('div');
+            longContainer.className = 'long-video-container';
+            longContainer.innerHTML = `
+                <video class="long-video-thumbnail" src="${video.videoUrl}" muted></video>
+                <div class="long-video-info">
+                    <div class="long-video-title">${video.title || 'Sin título'}</div>
+                    <div class="long-video-author">
+                        <img src="${user?.avatar || ''}" alt="Avatar" />
+                        <span>${user?.username || 'Usuario'}</span>
+                    </div>
+                    <div class="long-video-stats">${video.views || 0} vistas • ${video.likes || 0} likes</div>
+                </div>
+            `;
+            
+            longContainer.addEventListener('click', () => {
+                goToVideo(video.id);
+            });
+            
+            videoFeed.appendChild(longContainer);
+        } else {
+            // Mostrar como short
+            const mixedContainer = document.createElement('div');
+            mixedContainer.className = 'mixed-video-container short';
+            mixedContainer.dataset.videoId = video.id;
+            
+            mixedContainer.innerHTML = `
+                <video class="video-player" src="${video.videoUrl}" controls></video>
+                <div style="padding: 15px;">
+                    ${video.title ? `<div class="video-title">${video.title}</div>` : ''}
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <img src="${user?.avatar || ''}" style="width: 40px; height: 40px; border-radius: 50%;" />
+                        <div>
+                            <div style="font-weight: bold;">${user?.username || 'Usuario'}</div>
+                            <div style="font-size: 13px; opacity: 0.6;">${video.views || 0} vistas</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            videoFeed.appendChild(mixedContainer);
+        }
+    }
+}
+
+// Cargar solo shorts
+async function loadShorts() {
+    const videosRef = db.ref('videos').orderByChild('type').equalTo('short');
+    const snapshot = await videosRef.once('value');
+    
+    if (!snapshot.exists()) {
+        // Si no hay videos filtrados por tipo, cargar todos los verticales
+        loadVideos();
+        return;
+    }
+    
+    const videos = [];
+    snapshot.forEach(child => {
+        videos.push({ id: child.key, ...child.val() });
+    });
+    
+    videos.reverse();
+    
+    const videoFeed = document.getElementById('videoFeed');
+    videoFeed.innerHTML = '';
+    
+    for (const video of videos) {
+        // Crear short similar a loadVideos pero solo shorts
+        // Usar el mismo código de loadVideos() aquí
+    }
+}
+
+// Cargar solo longs
+async function loadLongs() {
+    const videosRef = db.ref('videos').orderByChild('type').equalTo('long');
+    const snapshot = await videosRef.once('value');
+    const videos = [];
+    
+    snapshot.forEach(child => {
+        videos.push({ id: child.key, ...child.val() });
+    });
+    
+    videos.reverse();
+    
+    const videoFeed = document.getElementById('videoFeed');
+    videoFeed.innerHTML = '';
+    
+    for (const video of videos) {
+        const userSnapshot = await db.ref(`users/${video.userId}`).once('value');
+        const user = userSnapshot.val();
+        
+        const longContainer = document.createElement('div');
+        longContainer.className = 'long-video-container';
+        longContainer.innerHTML = `
+            <video class="long-video-thumbnail" src="${video.videoUrl}" muted></video>
+            <div class="long-video-info">
+                <div class="long-video-title">${video.title || 'Sin título'}</div>
+                <div class="long-video-author">
+                    <img src="${user?.avatar || ''}" alt="Avatar" />
+                    <span>${user?.username || 'Usuario'}</span>
+                </div>
+                <div class="long-video-stats">${video.views || 0} vistas • ${video.likes || 0} likes</div>
+            </div>
+        `;
+        
+        longContainer.addEventListener('click', () => {
+            goToVideo(video.id);
+        });
+        
+        videoFeed.appendChild(longContainer);
+    }
+}
     </script>
 </body>
 </html>
