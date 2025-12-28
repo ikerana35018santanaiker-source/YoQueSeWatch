@@ -2860,16 +2860,17 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
         const videoBase64 = await fileToBase64(selectedVideo);
         
         await db.ref('videos').push({
-            userId: currentUser.uid,
-            videoUrl: videoBase64,
-            title: title,
-            description: description,
-            likes: 0,
-            comments: 0,
-            shares: 0,
-            views: 0,
-            timestamp: Date.now()
-        });
+    userId: currentUser.uid,
+    videoUrl: videoBase64,
+    title: title,
+    description: description,
+    type: selectedVideoType, // ✅ AGREGAR ESTA LÍNEA
+    likes: 0,
+    comments: 0,
+    shares: 0,
+    views: 0,
+    timestamp: Date.now()
+});
 
         document.getElementById('uploadModal').classList.remove('active');
         document.getElementById('videoTitle').value = '';
