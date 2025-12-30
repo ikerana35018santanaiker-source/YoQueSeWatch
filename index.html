@@ -2838,6 +2838,369 @@ async function loadLongs() {
         videoFeed.appendChild(longContainer);
     }
 }
+
+        // Variables globales
+let currentVideoId = null;
+let currentWatchingVideoId = null;
+let userLikedVideos = new Set(); // Para trackear videos con like
+
+// Cargar likes del usuario desde localStorage
+function loadUserLikes() {
+    const saved = localStorage.getItem(`userLikes_${currentUser.uid}`);
+    if (saved) {
+        userLikedVideos = new Set(JSON.parse(saved));
+    }
+}
+
+// Guardar likes del usuario
+function saveUserLikes() {
+    localStorage.setItem(`userLikes_${currentUser.uid}`, JSON.stringify([...userLikedVideos]));
+}
+
+// Verificar si el usuario ya dio like a un video
+function hasUserLiked(videoId) {
+    return userLikedVideos.has(videoId);
+}
+
+// Agregar like
+async function addLike(videoId) {
+    if (hasUserLiked(videoId)) return false;
+    
+    const videoSnapshot = await db.ref(`videos/${videoId}`).once('value');
+    const video = videoSnapshot.val();
+    const newLikes = (video.likes || 0) + 1;
+    
+    await db.ref(`videos/${videoId}/likes`).set(newLikes);
+    
+    userLikedVideos.add(videoId);
+    saveUserLikes();
+    
+    // Enviar notificación
+    if (video.userId !== currentUser.uid) {
+        await sendLikeNotification(video.userId, videoId);
+    }
+    
+    return true;
+}
+
+// Función para compartir video
+function shareVideo(videoId, videoType = 'video') {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const shareUrl = `${baseUrl}?${videoType}=${videoId}`;
+    
+    // Copiar al portapapeles
+    navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('¡Enlace copiado al portapapeles!');
+    }).catch(() => {
+        // Fallback si clipboard no funciona
+        prompt('Copia este enlace:', shareUrl);
+    });
+}
+
+// Función para abrir video en vista individual
+async function openVideoWatch(videoId) {
+    currentWatchingVideoId = videoId;
+    
+    // Ocultar otras secciones
+    document.getElementById('videoFeed').style.display = 'none';
+    document.getElementById('profileSection').classList.remove('active');
+    document.getElementById('friendsSection').classList.remove('active');
+    document.getElementById('chatSection').classList.remove('active');
+    document.getElementById('settingsSection').classList.remove('active');
+    
+    // Mostrar vista de video
+    document.getElementById('videoWatchContainer').classList.add('active');
+    
+    // Cargar datos del video
+    const videoSnapshot = await db.ref(`videos/${videoId}`).once('value');
+    const video = videoSnapshot.val();
+    
+    const userSnapshot = await db.ref(`users/${video.userId}`).once('value');
+    const user = userSnapshot.val();
+    
+    // Actualizar player
+    document.getElementById('videoWatchPlayer').src = video.videoUrl;
+    document.getElementById('videoWatchTitle').textContent = video.title || 'Sin título';
+    document.getElementById('videoWatchDescription').textContent = video.description || 'Sin descripción';
+    
+    // Actualizar autor
+    const authorSection = document.getElementById('videoWatchAuthor');
+    authorSection.querySelector('img').src = user?.avatar || '';
+    authorSection.querySelector('.video-watch-author-name').textContent = user?.username || 'Usuario';
+    
+    // Obtener seguidores
+    const followersCount = await getFollowersCount(video.userId);
+    authorSection.querySelector('.video-watch-author-subs').textContent = `${followersCount} seguidores`;
+    
+    // Click en autor
+    authorSection.addEventListener('click', () => {
+        openUserProfile(video.userId);
+    });
+    
+    // Actualizar botones
+    const likeBtn = document.getElementById('videoWatchLikeBtn');
+    const likeCount = document.getElementById('videoWatchLikeCount');
+    likeCount.textContent = video.likes || 0;
+    
+    if (hasUserLiked(videoId)) {
+        likeBtn.classList.add('liked');
+    } else {
+        likeBtn.classList.remove('liked');
+    }
+    
+    document.getElementById('videoWatchCommentCount').textContent = video.comments || 0;
+    
+    // Cargar recomendados
+    loadVideoRecommendations(videoId);
+    
+    // Mostrar recomendados por defecto
+    document.getElementById('videoWatchRecommendations').style.display = 'block';
+    document.getElementById('videoWatchCommentsSection').style.display = 'none';
+    document.getElementById('sidebarTitle').textContent = 'Recomendados';
+    document.getElementById('closeSidebarBtn').style.display = 'none';
+}
+
+// Cargar videos recomendados
+async function loadVideoRecommendations(currentVideoId) {
+    const videosSnapshot = await db.ref('videos').limitToLast(10).once('value');
+    const recommendations = document.getElementById('videoWatchRecommendations');
+    recommendations.innerHTML = '';
+    
+    const videos = [];
+    videosSnapshot.forEach(child => {
+        if (child.key !== currentVideoId) {
+            videos.push({ id: child.key, ...child.val() });
+        }
+    });
+    
+    for (const video of videos) {
+        const userSnapshot = await db.ref(`users/${video.userId}`).once('value');
+        const user = userSnapshot.val();
+        
+        const item = document.createElement('div');
+        item.className = 'recommended-video-item';
+        item.innerHTML = `
+            <video class="recommended-video-thumb" src="${video.videoUrl}" muted></video>
+            <div class="recommended-video-info">
+                <div class="recommended-video-title">${video.title || 'Sin título'}</div>
+                <div class="recommended-video-author">${user?.username || 'Usuario'}</div>
+                <div class="recommended-video-stats">${video.views || 0} vistas • ${video.likes || 0} likes</div>
+            </div>
+        `;
+        
+        item.addEventListener('click', () => {
+            openVideoWatch(video.id);
+        });
+        
+        recommendations.appendChild(item);
+    }
+}
+
+// Event listeners para vista de video
+document.getElementById('videoWatchLikeBtn').addEventListener('click', async () => {
+    if (!currentWatchingVideoId) return;
+    
+    const success = await addLike(currentWatchingVideoId);
+    if (success) {
+        const likeBtn = document.getElementById('videoWatchLikeBtn');
+        const likeCount = document.getElementById('videoWatchLikeCount');
+        
+        likeBtn.classList.add('liked');
+        likeCount.textContent = parseInt(likeCount.textContent) + 1;
+    }
+});
+
+document.getElementById('videoWatchCommentBtn').addEventListener('click', async () => {
+    if (!currentWatchingVideoId) return;
+    
+    // Ocultar recomendados, mostrar comentarios
+    document.getElementById('videoWatchRecommendations').style.display = 'none';
+    document.getElementById('videoWatchCommentsSection').style.display = 'block';
+    document.getElementById('sidebarTitle').textContent = 'Comentarios';
+    document.getElementById('closeSidebarBtn').style.display = 'flex';
+    
+    // Cargar comentarios
+    loadVideoWatchComments(currentWatchingVideoId);
+});
+
+document.getElementById('closeSidebarBtn').addEventListener('click', () => {
+    // Mostrar recomendados, ocultar comentarios
+    document.getElementById('videoWatchRecommendations').style.display = 'block';
+    document.getElementById('videoWatchCommentsSection').style.display = 'none';
+    document.getElementById('sidebarTitle').textContent = 'Recomendados';
+    document.getElementById('closeSidebarBtn').style.display = 'none';
+});
+
+document.getElementById('videoWatchShareBtn').addEventListener('click', () => {
+    if (!currentWatchingVideoId) return;
+    shareVideo(currentWatchingVideoId, 'long');
+});
+
+// Cargar comentarios en vista de video
+async function loadVideoWatchComments(videoId) {
+    const commentsList = document.getElementById('videoWatchCommentsList');
+    commentsList.innerHTML = '<div class="loading">Cargando comentarios...</div>';
+    
+    const commentsRef = db.ref(`comments/${videoId}`);
+    
+    commentsRef.on('value', async (snapshot) => {
+        commentsList.innerHTML = '';
+        
+        if (!snapshot.exists()) {
+            commentsList.innerHTML = '<div class="no-comments">No hay comentarios aún</div>';
+            return;
+        }
+        
+        const comments = [];
+        snapshot.forEach(child => {
+            comments.push({ id: child.key, ...child.val() });
+        });
+        
+        comments.sort((a, b) => b.timestamp - a.timestamp);
+        
+        for (const comment of comments) {
+            const userSnapshot = await db.ref(`users/${comment.userId}`).once('value');
+            const user = userSnapshot.val();
+            
+            const commentItem = document.createElement('div');
+            commentItem.className = 'comment-item';
+            commentItem.innerHTML = `
+                <img class="comment-avatar" src="${user?.avatar || ''}" alt="Avatar" />
+                <div class="comment-content">
+                    <div class="comment-header">
+                        <span class="comment-username">@${user?.username || 'Usuario'}</span>
+                        <span class="comment-time">${getTimeAgo(comment.timestamp)}</span>
+                    </div>
+                    <div class="comment-text">${comment.text}</div>
+                </div>
+            `;
+            
+            commentsList.appendChild(commentItem);
+        }
+    });
+}
+
+// Enviar comentario en vista de video
+document.getElementById('videoWatchSendComment').addEventListener('click', async () => {
+    const input = document.getElementById('videoWatchCommentInput');
+    const text = input.value.trim();
+    
+    if (!text || !currentWatchingVideoId) return;
+    
+    try {
+        await db.ref(`comments/${currentWatchingVideoId}`).push({
+            userId: currentUser.uid,
+            text: text,
+            timestamp: Date.now()
+        });
+        
+        const videoSnapshot = await db.ref(`videos/${currentWatchingVideoId}`).once('value');
+        const video = videoSnapshot.val();
+        const newCommentCount = (video.comments || 0) + 1;
+        await db.ref(`videos/${currentWatchingVideoId}/comments`).set(newCommentCount);
+        
+        document.getElementById('videoWatchCommentCount').textContent = newCommentCount;
+        
+        if (video.userId !== currentUser.uid) {
+            await db.ref(`notifications/${video.userId}`).push({
+                type: 'comment',
+                fromUserId: currentUser.uid,
+                videoId: currentWatchingVideoId,
+                timestamp: Date.now(),
+                read: false
+            });
+        }
+        
+        input.value = '';
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+// Enter para enviar comentario
+document.getElementById('videoWatchCommentInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('videoWatchSendComment').click();
+    }
+});
+
+// Modificar loadLongs para usar la nueva vista
+async function loadLongs() {
+    const videosRef = db.ref('videos').orderByChild('type').equalTo('long');
+    const snapshot = await videosRef.once('value');
+    const videos = [];
+    
+    snapshot.forEach(child => {
+        videos.push({ id: child.key, ...child.val() });
+    });
+    
+    videos.reverse();
+    
+    const videoFeed = document.getElementById('videoFeed');
+    videoFeed.innerHTML = '';
+    
+    for (const video of videos) {
+        const userSnapshot = await db.ref(`users/${video.userId}`).once('value');
+        const user = userSnapshot.val();
+        
+        const longContainer = document.createElement('div');
+        longContainer.className = 'long-video-container';
+        longContainer.innerHTML = `
+            <video class="long-video-thumbnail" src="${video.videoUrl}" muted></video>
+            <div class="long-video-info">
+                <div class="long-video-title">${video.title || 'Sin título'}</div>
+                <div class="long-video-author">
+                    <img src="${user?.avatar || ''}" alt="Avatar" />
+                    <span>${user?.username || 'Usuario'}</span>
+                </div>
+                <div class="long-video-stats">${video.views || 0} vistas • ${video.likes || 0} likes</div>
+            </div>
+        `;
+        
+        longContainer.addEventListener('click', () => {
+            openVideoWatch(video.id);
+        });
+        
+        videoFeed.appendChild(longContainer);
+    }
+}
+
+// Actualizar botón de compartir en shorts
+function updateShareButtons() {
+    document.querySelectorAll('[data-action="share"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const videoId = btn.dataset.video;
+            shareVideo(videoId, 'short');
+        });
+    });
+}
+
+// Detectar URL params al cargar
+function checkUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    const longId = params.get('long');
+    const shortId = params.get('short');
+    const videoId = params.get('video');
+    
+    if (longId) {
+        setTimeout(() => openVideoWatch(longId), 1000);
+    } else if (shortId || videoId) {
+        const id = shortId || videoId;
+        setTimeout(() => goToVideo(id), 1000);
+    }
+}
+
+// Llamar al cargar
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        currentUser = user;
+        
+        // ... código existente ...
+        
+        loadUserLikes(); // Cargar likes del usuario
+        checkUrlParams(); // Verificar URL params
+    }
+});
     </script>
 </body>
 </html>
