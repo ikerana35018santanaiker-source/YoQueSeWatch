@@ -1522,4 +1522,228 @@ body {
     .video-feed.longs-mode {
         grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     }
+
+    /* Vista de video individual tipo YouTube */
+.video-watch-container {
+    display: none;
+    padding: 80px 20px 20px;
+    max-width: 1800px;
+    margin: 0 auto;
+}
+
+.video-watch-container.active {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 20px;
+}
+
+.video-watch-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.video-watch-player {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+    border-radius: 15px;
+    margin-bottom: 20px;
+}
+
+.video-watch-info {
+    background: #1a1a1a;
+    padding: 20px;
+    border-radius: 15px;
+    margin-bottom: 15px;
+}
+
+.video-watch-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.video-watch-metadata {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.video-watch-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.video-watch-author img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.video-watch-author-info {
+    cursor: pointer;
+}
+
+.video-watch-author-name {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.video-watch-author-subs {
+    font-size: 13px;
+    opacity: 0.6;
+}
+
+.video-watch-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.video-watch-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #252525;
+    border: none;
+    border-radius: 25px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.video-watch-btn:hover {
+    background: #333;
+}
+
+.video-watch-btn.liked {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.video-watch-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+.video-watch-description {
+    background: #1a1a1a;
+    padding: 15px 20px;
+    border-radius: 15px;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.video-watch-sidebar {
+    display: flex;
+    flex-direction: column;
+}
+
+.video-watch-sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 0 10px;
+}
+
+.video-watch-sidebar-header h3 {
+    font-size: 18px;
+}
+
+.close-sidebar-btn {
+    width: 32px;
+    height: 32px;
+    background: #252525;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.close-sidebar-btn:hover {
+    background: #333;
+    transform: rotate(90deg);
+}
+
+.video-watch-comments {
+    background: #1a1a1a;
+    border-radius: 15px;
+    padding: 20px;
+    height: calc(100vh - 200px);
+    overflow-y: auto;
+}
+
+.video-watch-recommendations {
+    overflow-y: auto;
+    height: calc(100vh - 200px);
+}
+
+.recommended-video-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.recommended-video-item:hover {
+    background: #252525;
+}
+
+.recommended-video-thumb {
+    width: 160px;
+    min-width: 160px;
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    object-fit: cover;
+    background: #333;
+}
+
+.recommended-video-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.recommended-video-title {
+    font-size: 14px;
+    font-weight: 500;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.recommended-video-author {
+    font-size: 13px;
+    opacity: 0.6;
+}
+
+.recommended-video-stats {
+    font-size: 12px;
+    opacity: 0.5;
+}
+
+@media (max-width: 1200px) {
+    .video-watch-container.active {
+        grid-template-columns: 1fr;
+    }
+    
+    .video-watch-sidebar {
+        margin-top: 20px;
+    }
+}
 }
