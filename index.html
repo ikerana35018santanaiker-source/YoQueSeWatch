@@ -1813,6 +1813,13 @@ document.getElementById('googleLogin').addEventListener('click', async () => {
         username.addEventListener('click', () => {
             openUserProfile(video.userId);
         });
+
+        // Compartir
+const shareBtn = videoContainer.querySelector('[data-action="share"]');
+shareBtn.dataset.video = video.id; // Agregar ID al botón
+shareBtn.addEventListener('click', () => {
+    shareVideo(video.id, video.type === 'long' ? 'long' : 'short');
+});
     }
 }
 
